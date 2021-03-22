@@ -51,7 +51,7 @@ The features of STECCY can be summarised as follows:
 
 ## ROM
 
-The Sinclair operating system, namely the ZX-Spectrum 128K or 48K ROM, consists of 16KB or 32KB data, which are mostly Z80 instructions. Since the copyright holder Amstrad has released the contents in the meantime, as long as the copyright notice remains intact, it is no problem to use the original ROM of the ZX-Spectrum 128K or even 48K for such an emulation. Yes, you are even allowed to redistribute the contents.
+The Sinclair operating system, namely the ZX-Spectrum 128K or 48K ROM, consists of 16KB or 32KB data, which are mostly Z80 instructions. Since the copyright holder Amstrad has released the contents to the public domain, as long as the copyright notice remains intact, it is no problem to use the original ROM of the ZX-Spectrum 128K or even 48K for such an emulation. Yes, you are even allowed to redistribute the contents.
 
 See also Amstrad ROM permissions
 
