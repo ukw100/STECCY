@@ -125,7 +125,7 @@ Furthermore, other ZX Spectrum programmes can be stored on the SD card, namely a
 The structure of these files is explained here, among other things:
 
 - TAP: [ZX Spectrum tape file: format specification](https://formats.kaitai.io/zx_spectrum_tap/index.html)
-- TZX: [TZX FORMAT](https://www.worldofspectrum.org/TZXformat.html)
+- TZX: [TZX FORMAT](http://k1.spdns.de/Develop/Projects/zasm/Info/TZX%20format.html)
 - Snapshots: [Z80 File Format](https://www.worldofspectrum.org/faq/reference/z80format.htm)
 
 The TZX file format is much more flexible than the TAP format. TZX also allows compression and fast loading routines that used to exist for the ZX Spectrum. However, STECCY only supports loading via the standard ROM routines (compressed and uncompressed), so fast loaders are not supported. Over 95 per cent of ZX-Spectrum programmes use the ROM routines, so there are no problems there.
