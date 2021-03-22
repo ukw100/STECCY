@@ -1,6 +1,4 @@
 # STECCY
-
-# STECCY
 ## _ZX Spectrum Emulator 128K and 48K for STM32F407VET6_
 
 ![STECCY 128K](https://raw.githubusercontent.com/ukw100/STECCY/main/images/steccy-128k.png "STECCY 128K")
