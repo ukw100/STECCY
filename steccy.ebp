@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<EmBitz_project_file>
+	<EmBitzVersion release="1.11" revision="0" />
+	<FileVersion major="1" minor="0" />
+	<Project>
+		<Option title="steccy" />
+		<Option pch_mode="2" />
+		<Option compiler="armgcc_eb" />
+		<Build>
+			<Target title="ILI9341-Debug">
+				<Option output="bin\ILI9341-Debug\steccy-ili9341.elf" />
+				<Option object_output="obj\ILI9341-Debug\" />
+				<Option type="0" />
+				<Option create_hex="1" />
+				<Option compiler="armgcc_eb" />
+				<Option projectDeviceOptionsRelation="0" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O0" />
+					<Add option="-g3" />
+					<Add option="-DARM_MATH_CM4" />
+					<Add option="-D__FPU_USED" />
+					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F4XX" />
+					<Add option="-DUSE_STDPERIPH_DRIVER" />
+					<Add option="-DHSE_VALUE=8000000" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DILI9341" />
+				</Compiler>
+				<Cpp>
+					<Add option="-Wall" />
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O0" />
+					<Add option="-g3" />
+				</Cpp>
+				<Assembler>
+					<Add option="-Wa,--gdwarf-2" />
+				</Assembler>
+				<Linker>
+					<Add option="-Wl,--gc-sections" />
+				</Linker>
+			</Target>
+			<Target title="ILI9341-Release">
+				<Option output="bin\ILI9341-Release\steccy-ili9341.elf" />
+				<Option object_output="obj\ILI9341-Release\" />
+				<Option type="0" />
+				<Option create_hex="1" />
+				<Option compiler="armgcc_eb" />
+				<Option projectDeviceOptionsRelation="0" />
+				<Compiler>
+					<Add option="-Werror" />
+					<Add option="-W" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O2" />
+					<Add option="-g2" />
+					<Add option="-DARM_MATH_CM4" />
+					<Add option="-D__FPU_USED" />
+					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F4XX" />
+					<Add option="-DUSE_STDPERIPH_DRIVER" />
+					<Add option="-DHSE_VALUE=8000000" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DILI9341" />
+				</Compiler>
+				<Cpp>
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O2" />
+					<Add option="-g2" />
+				</Cpp>
+				<Assembler>
+					<Add option="-Wa,--no-warn" />
+				</Assembler>
+				<Linker>
+					<Add option="-Wl,--gc-sections" />
+					<Add option="-flto" />
+				</Linker>
+			</Target>
+			<Target title="SSD1963-Debug">
+				<Option output="bin\SSD1963-Debug\steccy.elf" />
+				<Option object_output="obj\SSD1963-Debug\" />
+				<Option type="0" />
+				<Option create_hex="1" />
+				<Option compiler="armgcc_eb" />
+				<Option projectDeviceOptionsRelation="0" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O0" />
+					<Add option="-g3" />
+					<Add option="-DARM_MATH_CM4" />
+					<Add option="-D__FPU_USED" />
+					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F4XX" />
+					<Add option="-DUSE_STDPERIPH_DRIVER" />
+					<Add option="-DHSE_VALUE=8000000" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DSSD1963" />
+				</Compiler>
+				<Cpp>
+					<Add option="-Wall" />
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O0" />
+					<Add option="-g3" />
+				</Cpp>
+				<Assembler>
+					<Add option="-Wa,--gdwarf-2" />
+				</Assembler>
+				<Linker>
+					<Add option="-Wl,--gc-sections" />
+				</Linker>
+			</Target>
+			<Target title="SSD1963-Release">
+				<Option output="bin\SSD1963-Release\steccy.elf" />
+				<Option object_output="obj\SSD1963-Release\" />
+				<Option type="0" />
+				<Option create_hex="1" />
+				<Option compiler="armgcc_eb" />
+				<Option projectDeviceOptionsRelation="0" />
+				<Compiler>
+					<Add option="-Werror" />
+					<Add option="-W" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O2" />
+					<Add option="-g2" />
+					<Add option="-DARM_MATH_CM4" />
+					<Add option="-D__FPU_USED" />
+					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F4XX" />
+					<Add option="-DUSE_STDPERIPH_DRIVER" />
+					<Add option="-DHSE_VALUE=8000000" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DSSD1963" />
+				</Compiler>
+				<Cpp>
+					<Add option="-fdata-sections" />
+					<Add option="-ffunction-sections" />
+					<Add option="-O2" />
+					<Add option="-g2" />
+				</Cpp>
+				<Assembler>
+					<Add option="-Wa,--no-warn" />
+				</Assembler>
+				<Linker>
+					<Add option="-Wl,--gc-sections" />
+					<Add option="-flto" />
+				</Linker>
+			</Target>
+		</Build>
+		<Device>
+			<Add option="$device=cortex-m4" />
+			<Add option="$fpu=fpv4-sp-d16" />
+			<Add option="$stack=0x0100" />
+			<Add option="$heap=0x0000" />
+			<Add option="$lscript=./stm32f407ve_flash.ld" />
+		</Device>
+		<Compiler>
+			<Add option="-mfloat-abi=hard" />
+			<Add option="-fno-strict-aliasing" />
+			<Add symbol="ARM_MATH_CM4" />
+			<Add symbol="__FPU_USED" />
+			<Add symbol="STM32F407VE" />
+			<Add symbol="STM32F4XX" />
+			<Add symbol="USE_STDPERIPH_DRIVER" />
+			<Add directory=".\inc" />
+			<Add directory=".\src" />
+			<Add directory=".\cmsis" />
+			<Add directory=".\SPL\inc" />
+			<Add directory=".\SPL\src" />
+		</Compiler>
+		<Linker>
+			<Add option="-eb_start_files" />
+			<Add option="-eb_lib=n" />
+		</Linker>
+		<Unit filename="cmsis\arm_common_tables.h" />
+		<Unit filename="cmsis\arm_math.h" />
+		<Unit filename="cmsis\core_cm4.h" />
+		<Unit filename="cmsis\core_cm4_simd.h" />
+		<Unit filename="cmsis\core_cmFunc.h" />
+		<Unit filename="cmsis\core_cmInstr.h" />
+		<Unit filename="inc\stm32f4xx.h" />
+		<Unit filename="inc\stm32f4xx_conf.h" />
+		<Unit filename="inc\system_stm32f4xx.h" />
+		<Unit filename="readme.txt" />
+		<Unit filename="SPL\inc\misc.h" />
+		<Unit filename="SPL\inc\stm32f4xx_adc.h" />
+		<Unit filename="SPL\inc\stm32f4xx_can.h" />
+		<Unit filename="SPL\inc\stm32f4xx_crc.h" />
+		<Unit filename="SPL\inc\stm32f4xx_cryp.h" />
+		<Unit filename="SPL\inc\stm32f4xx_dac.h" />
+		<Unit filename="SPL\inc\stm32f4xx_dbgmcu.h" />
+		<Unit filename="SPL\inc\stm32f4xx_dcmi.h" />
+		<Unit filename="SPL\inc\stm32f4xx_dma.h" />
+		<Unit filename="SPL\inc\stm32f4xx_exti.h" />
+		<Unit filename="SPL\inc\stm32f4xx_flash.h" />
+		<Unit filename="SPL\inc\stm32f4xx_fsmc.h" />
+		<Unit filename="SPL\inc\stm32f4xx_gpio.h" />
+		<Unit filename="SPL\inc\stm32f4xx_hash.h" />
+		<Unit filename="SPL\inc\stm32f4xx_i2c.h" />
+		<Unit filename="SPL\inc\stm32f4xx_iwdg.h" />
+		<Unit filename="SPL\inc\stm32f4xx_pwr.h" />
+		<Unit filename="SPL\inc\stm32f4xx_rcc.h" />
+		<Unit filename="SPL\inc\stm32f4xx_rng.h" />
+		<Unit filename="SPL\inc\stm32f4xx_rtc.h" />
+		<Unit filename="SPL\inc\stm32f4xx_sdio.h" />
+		<Unit filename="SPL\inc\stm32f4xx_spi.h" />
+		<Unit filename="SPL\inc\stm32f4xx_syscfg.h" />
+		<Unit filename="SPL\inc\stm32f4xx_tim.h" />
+		<Unit filename="SPL\inc\stm32f4xx_usart.h" />
+		<Unit filename="SPL\inc\stm32f4xx_wwdg.h" />
+		<Unit filename="SPL\src\misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_adc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_can.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_crc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_cryp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_cryp_aes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_cryp_des.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_cryp_tdes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_dac.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_dbgmcu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_dcmi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_dma.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_exti.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_flash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_fsmc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_gpio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_hash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_hash_md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_hash_sha1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_i2c.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_iwdg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_pwr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_rcc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_rng.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_rtc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_sdio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_spi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_syscfg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_tim.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_usart.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SPL\src\stm32f4xx_wwdg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\board-led\board-led.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\board-led\board-led.h" />
+		<Unit filename="src\console\console-uart.h" />
+		<Unit filename="src\console\console.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\console\console.h" />
+		<Unit filename="src\delay\delay.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\delay\delay.h" />
+		<Unit filename="src\fatfs\diskio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\fatfs\diskio.h" />
+		<Unit filename="src\fatfs\ff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\fatfs\ff.h" />
+		<Unit filename="src\fatfs\ffconf.h" />
+		<Unit filename="src\fatfs\ffsystem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\fatfs\ffunicode.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\fatfs\integer.h" />
+		<Unit filename="src\font\font-iso88591-05x08.h" />
+		<Unit filename="src\font\font-iso88591-05x12.h" />
+		<Unit filename="src\font\font-iso88591-06x08.h" />
+		<Unit filename="src\font\font-iso88591-06x10.h" />
+		<Unit filename="src\font\font-iso88591-08x08.h" />
+		<Unit filename="src\font\font-iso88591-08x12.h" />
+		<Unit filename="src\font\font-iso88591-08x14.h" />
+		<Unit filename="src\font\font-iso88591-10x16.h" />
+		<Unit filename="src\font\font-iso88591-12x16.h" />
+		<Unit filename="src\font\font-iso88591-12x20.h" />
+		<Unit filename="src\font\font-iso88591-16x26.h" />
+		<Unit filename="src\font\font-iso88591-22x36.h" />
+		<Unit filename="src\font\font-iso88591-24x40.h" />
+		<Unit filename="src\font\font-iso88591-32x53.h" />
+		<Unit filename="src\font\font.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\font\font.h" />
+		<Unit filename="src\fs-stdio\fs-stdio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\fs-stdio\fs-stdio.h" />
+		<Unit filename="src\i2c1-dma\i2c1-dma.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\i2c1-dma\i2c1-dma.h" />
+		<Unit filename="src\ili9341\ili9341-config.h" />
+		<Unit filename="src\ili9341\ili9341.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\ili9341\ili9341.h" />
+		<Unit filename="src\io\io.h" />
+		<Unit filename="src\joystick\joystick.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\joystick\joystick.h" />
+		<Unit filename="src\keypress\keypress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\keypress\keypress.h" />
+		<Unit filename="src\main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\menu\menu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\menu\menu.h" />
+		<Unit filename="src\ps2key\ps2key.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\ps2key\ps2key.h" />
+		<Unit filename="src\sdcard\stm32_sdcard.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\sdcard\stm32_sdcard.h" />
+		<Unit filename="src\speaker\speaker.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\speaker\speaker.h" />
+		<Unit filename="src\ssd1963\ssd1963-config.h" />
+		<Unit filename="src\ssd1963\ssd1963.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\ssd1963\ssd1963.h" />
+		<Unit filename="src\startup_stm32f4xx.S">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\system_stm32f4xx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\tape\tape.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\tape\tape.h" />
+		<Unit filename="src\tft\tft.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\tft\tft.h" />
+		<Unit filename="src\uart\uart-driver.h" />
+		<Unit filename="src\uart\uart.h" />
+		<Unit filename="src\usb_hid_host\usb_hid_host.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host\usb_hid_host.h" />
+		<Unit filename="src\usb_hid_host\usb_hid_host_config.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_bsp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usb_bsp.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_conf.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_core.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usb_core.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_defines.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_hcd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usb_hcd.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_hcd_int.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usb_hcd_int.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usb_regs.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_conf.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_core.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_core.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_def.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hcs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hcs.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hid_core.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hid_core.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hid_keybd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hid_keybd.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hid_mouse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_hid_mouse.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_ioreq.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_ioreq.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_stdreq.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_stdreq.h" />
+		<Unit filename="src\usb_hid_host_lolevel\usbh_usr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\usb_hid_host_lolevel\usbh_usr.h" />
+		<Unit filename="src\wii-gamepad\wii-gamepad.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\wii-gamepad\wii-gamepad.h" />
+		<Unit filename="src\z80\z80.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\z80\z80.h" />
+		<Unit filename="src\zxio\zxio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\zxio\zxio.h" />
+		<Unit filename="src\zxkbd\zxkbd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\zxkbd\zxkbd.h" />
+		<Unit filename="src\zxram\zxram.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\zxram\zxram.h" />
+		<Unit filename="src\zxscr\zxscr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src\zxscr\zxscr.h" />
+		<Unit filename="stm32f407ve_flash.ld" />
+		<Unit filename="stm32f407ve_sram.ld" />
+		<Extensions>
+			<code_completion />
+			<debugger>
+				<target_debugging_settings target="ILI9341-Release" active_interface="ST-link">
+					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBITZ}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics" gdb_before_conn="" gdb_after_conn="">
+						<family_options family_id="STMicroelectronics">
+							<option opt_id="ID_JTAG_SWD" opt_value="swd" />
+							<option opt_id="ID_VECTOR_START" opt_value="0x08000000" />
+							<option opt_id="ID_RESET_TYPE" opt_value="System" />
+							<option opt_id="ID_LOAD_PROGRAM" opt_value="1" />
+							<option opt_id="ID_SEMIHOST_CHECK" opt_value="0" />
+							<option opt_id="ID_RAM_EXEC" opt_value="0" />
+							<option opt_id="ID_VEC_TABLE" opt_value="1" />
+							<option opt_id="ID_DONT_CONN_RESET" opt_value="0" />
+							<option opt_id="ID_ALL_MODE_DEBUG" opt_value="0" />
+							<option opt_id="ID_DEV_ADDR" opt_value="" />
+							<option opt_id="ID_VERBOSE_LEVEL" opt_value="3" />
+						</family_options>
+					</debug_interface>
+				</target_debugging_settings>
+				<target_debugging_settings target="ILI9341-Debug" active_interface="ST-link">
+					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBITZ}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics" gdb_before_conn="" gdb_after_conn="">
+						<family_options family_id="STMicroelectronics">
+							<option opt_id="ID_JTAG_SWD" opt_value="swd" />
+							<option opt_id="ID_VECTOR_START" opt_value="0x08000000" />
+							<option opt_id="ID_RESET_TYPE" opt_value="System" />
+							<option opt_id="ID_LOAD_PROGRAM" opt_value="1" />
+							<option opt_id="ID_SEMIHOST_CHECK" opt_value="0" />
+							<option opt_id="ID_RAM_EXEC" opt_value="0" />
+							<option opt_id="ID_VEC_TABLE" opt_value="1" />
+							<option opt_id="ID_DONT_CONN_RESET" opt_value="0" />
+							<option opt_id="ID_ALL_MODE_DEBUG" opt_value="0" />
+							<option opt_id="ID_DEV_ADDR" opt_value="" />
+							<option opt_id="ID_VERBOSE_LEVEL" opt_value="3" />
+						</family_options>
+					</debug_interface>
+				</target_debugging_settings>
+				<target_debugging_settings target="SSD1963-Release" active_interface="ST-link">
+					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBITZ}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics" gdb_before_conn="" gdb_after_conn="">
+						<family_options family_id="STMicroelectronics">
+							<option opt_id="ID_JTAG_SWD" opt_value="swd" />
+							<option opt_id="ID_VECTOR_START" opt_value="0x08000000" />
+							<option opt_id="ID_RESET_TYPE" opt_value="System" />
+							<option opt_id="ID_LOAD_PROGRAM" opt_value="1" />
+							<option opt_id="ID_SEMIHOST_CHECK" opt_value="0" />
+							<option opt_id="ID_RAM_EXEC" opt_value="0" />
+							<option opt_id="ID_VEC_TABLE" opt_value="1" />
+							<option opt_id="ID_DONT_CONN_RESET" opt_value="0" />
+							<option opt_id="ID_ALL_MODE_DEBUG" opt_value="0" />
+							<option opt_id="ID_DEV_ADDR" opt_value="" />
+							<option opt_id="ID_VERBOSE_LEVEL" opt_value="3" />
+						</family_options>
+					</debug_interface>
+				</target_debugging_settings>
+				<target_debugging_settings target="SSD1963-Debug" active_interface="ST-link">
+					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBITZ}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics" gdb_before_conn="" gdb_after_conn="">
+						<family_options family_id="STMicroelectronics">
+							<option opt_id="ID_JTAG_SWD" opt_value="swd" />
+							<option opt_id="ID_VECTOR_START" opt_value="0x08000000" />
+							<option opt_id="ID_RESET_TYPE" opt_value="System" />
+							<option opt_id="ID_LOAD_PROGRAM" opt_value="1" />
+							<option opt_id="ID_SEMIHOST_CHECK" opt_value="0" />
+							<option opt_id="ID_RAM_EXEC" opt_value="0" />
+							<option opt_id="ID_VEC_TABLE" opt_value="1" />
+							<option opt_id="ID_DONT_CONN_RESET" opt_value="0" />
+							<option opt_id="ID_ALL_MODE_DEBUG" opt_value="0" />
+							<option opt_id="ID_DEV_ADDR" opt_value="" />
+							<option opt_id="ID_VERBOSE_LEVEL" opt_value="3" />
+						</family_options>
+					</debug_interface>
+				</target_debugging_settings>
+			</debugger>
+			<envvars />
+		</Extensions>
+	</Project>
+</EmBitz_project_file>
