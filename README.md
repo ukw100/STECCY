@@ -5,9 +5,29 @@
 
 (You can find the documentation in **German** at https://www.mikrocontroller.net/articles/STECCY.)
 
+## Features
+
+- Emulation of all Z80 instructions - even the undocumented ones.
+- Timing is similar to that of a Z80 CPU at 3.5MHz.
+- Support of displays with SSD1963 or ILI9341 controllers
+- Enlarged display of the ZX-Spectrum display incl. "border" on TFT with 800x480 pixels
+- Different ZX-Spectrum ROMs possible
+- Loading and saving of TAPE data via SD card
+- Simulation of the Spectrum keyboard by a PS/2 or USB keyboard
+- Support of an original ZX-Spectrum keyboard (matrix)
+- Joystick emulation with Wii Nunchuk or Wii Gamepad or via PC keyboard
+- Control of the two board LEDs via Z80-OUT commands (BASIC or assembler)
+- Control of STM32-USART2 via ZX-Basic PRINT and INPUT commands
+
 STECCY emulates a ZX Spectrum 128K or Spectrum 48K on a STM32F407VET black board, which can be purchased for about 10 euros on eBay or Aliexpress. In addition, STECCY can be compiled under QT, so that STECCY can also be used under Windows and Linux. There is also a framebuffer and X11 port to Linux, so that STECCY also runs on a Raspberry PI in the console or on the desktop.
 
 As an emulator, STECCY not only reproduces the instruction set of a Z80 CPU, but also parts of the ZX Spectrum hardware. The 256x192 Spectrum display is shown on a TFT display with a magnification of 2:1 - i.e. with a resolution of 512x384 pixels.
+
+Some examples:
+
+| ZX Basic | Manic Miner | Jetset Willy |
+|-|-|-|
+| ![ZX Basic](https://github.com/ukw100/STECCY/raw/main/images/steccy-basic.png "ZX Basic") | ![Manic Miner](https://github.com/ukw100/STECCY/raw/main/images/steccy-manic-miner.png "Manic Miner") | ![Manic Miner](https://github.com/ukw100/STECCY/raw/main/images/steccy-jetset.png "Manic Miner") |
 
 Loading and saving programmes is done via an SD card, which is FAT-formatted. Here, the cassette recorder routines in the virtual ROM are converted to load and save routines for SD cards. STECCY supports TAP, TZX and snapshot files for this purpose. Snapshots can be used to freeze and save the current state of the emulated ZX spectrum at any time. This makes it possible, for example, to continue playing a game the next day at exactly the same time as it was saved as a snapshot.
 
@@ -32,22 +52,6 @@ The following ZX Spectrum hardware is emulated by STECCY:
 In the original, the Spectrum ULA is responsible for the playback of the Spectrum screen. It reads the required 6912 bytes from the RAM of the spectrum at a rate of 50Hz. This is done analogously by STECCY: Here, the TFT display is also updated 50 times per second. However, an optimisation takes place here: Only the changed data is retransmitted to the TFT in order to save time.
 
 The ULA chip also takes care of the Z80 interrupt, which ensures that the keyboard routines in the RAM are jumped to in order to read out the matrix keyboard of the Spectrum. Various system variables are also updated, such as a 16-bit uptime counter. Depending on the current interrupt mode (IM0/IM1/IM2), STECCY uses the resulting addresses as interrupt jump addresses and then calls the corresponding interrupt routine. This jump address is in ROM by default, but many games change it to their own addresses in RAM, for example, to update the spectrum screen without flickering. 
-
-## Features
-
-The features of STECCY can be summarised as follows:
-
-- Emulation of all Z80 instructions - even the undocumented ones.
-- Timing is similar to that of a Z80 CPU at 3.5MHz.
-- Support of displays with SSD1963 or ILI9341 controllers
-- Enlarged display of the ZX-Spectrum display incl. "border" on TFT with 800x480 pixels
-- Different ZX-Spectrum ROMs possible
-- Loading and saving of TAPE data via SD card
-- Simulation of the Spectrum keyboard by a PS/2 or USB keyboard
-- Support of an original ZX-Spectrum keyboard (matrix)
-- Joystick emulation with Wii Nunchuk or Wii Gamepad or via PC keyboard
-- Control of the two board LEDs via Z80-OUT commands (BASIC or assembler)
-- Control of STM32-USART2 via ZX-Basic PRINT and INPUT commands
 
 ## ROM
 
@@ -102,7 +106,7 @@ The software for using the SD card is [FatFs - Generic FAT Filesystem Module](ht
 
 ## STM32F407VET BlackBoard
 
-![STECCY 128K](https://raw.githubusercontent.com/ukw100/STECCY/main/images/steccy-stm32f407vet6-blackboard.jpg "STECCY 128K")
+<img src="https://raw.githubusercontent.com/ukw100/STECCY/main/images/steccy-stm32f407vet6-blackboard.jpg" width=30% align="right">
 
 The following components, among others, are installed on the BlackBoard:
 
@@ -157,6 +161,8 @@ This display is also available in the same resolution as a 5 inch display for le
 
 The display is connected to the TFT pin socket of the STM32F407VET BlackBoard via the parallel FSMC interface of the STM32 as follows:
 
+<img src="https://github.com/ukw100/STECCY/raw/main/images/steccy-ssd1963-tft-pins.png" width="150" align="right">
+
 | STM32 TFT Pin | FSMC Name | STM32 Pin | Display Pin | Display Name | Remarks          |
 |:--------------|:----------|:---------:|:-----------:|:-------------|:-----------------|
 | 1             | GND       | GND       | 1           | GND          | TFT GND          |
@@ -193,9 +199,6 @@ The display is connected to the TFT pin socket of the STM32F407VET BlackBoard vi
 | 32            | GND       | GND       | 1           | GND          | TFT GND          |
 | --            | 5V        | 5V        | 35          | 5V           | s. Text          |
 
-Pins of 7 inch TFT Display:
-![Pins of 7 inch TFT Display](https://github.com/ukw100/STECCY/raw/main/images/steccy-ssd1963-tft-pins.png "Pins of 7 inch TFT Display")
-
 Since the backlight of the display draws approx. 400mA as current, the 5V supply of the display should not be done via the STM32 board, but directly via a 5V power supply unit with at least 1, better 2 amps. This can then also supply the STM32 board. There are enough pins for 5V on the STM32 board. It is therefore not necessary to use the USB plug for the power supply. Under no circumstances should the BlackBoard be operated via the 5V pin socket and the USB plug at the same time!
 
 To power the backlight, do the following:
@@ -223,8 +226,8 @@ With the F1 key, you can choose between 4 orientations during operation:
 You can save the orientation in the INI file "steccy.ini". To do this, you count how often you had to press the F1 key to see the picture the right way round.
 
 This value is entered in the INI file as
+
 ```ORIENTATION=0              # or 1, 2, 3```
-in the INI file.
 
 Likewise, there are TFT displays whose RGB colour sequence is wired differently. If the display shows wrong colours, you can change the RGB colour sequence with the F2 key.
 
@@ -232,8 +235,10 @@ This can also be saved in the INI file "steccy.ini".
 
 Enter here:
 
-```RGB=0 # Standard order RGB```
-```RGB=1 # Non-standard is GRB```
+```
+RGB=0 # Standard order RGB
+RGB=1 # Non-standard is GRB
+```
 
 ## Keyboard
 
@@ -291,7 +296,7 @@ The USB keyboard is connected to the Mini USB port of the STM32F407 blackboard v
 Important:
 
 Since in this case the STM32 acts as USB host (in HID mode), the pull-up resistor R21 (1.5K) on the STM32F407VET6 blackboard marked "V2.0" must be desoldered. Otherwise the USB keyboard will not be recognised.
-![Pull Up resistor on BlackBoard](https://github.com/ukw100/STECCY/raw/main/images/steccy-stm32f407vet6-blackboard-r21.jpg "Pull Up Resistor on BlackBoard")
+<img align="right" width=30% src="https://github.com/ukw100/STECCY/raw/main/images/steccy-stm32f407vet6-blackboard-r21.jpg">
 
 In the meantime, there are also black boards with the identification "V33" on the back. The resistor circled in the photo no longer exists. There is still a resistor R21 at another location, but it has a different function. In this case, therefore, no intervention is necessary.
 
@@ -380,6 +385,9 @@ In addition to the "2" key, the "5" key also acts as a "joystick down". Reason: 
 
 You can also use a Wii Gamepad or Wii Nunchuk controller as a joystick. These are available as clones for a few euros on eBay.
 
+<img align="right" width="150" src="https://github.com/ukw100/STECCY/raw/main/images/steccy-nunchuk.png">
+<img align="right" width="150" src="https://github.com/ukw100/STECCY/raw/main/images/steccy-nunchuk-plug.png">
+
 The two Wii devices use the I2C protocol. For the connection with the STM32 4 connections are necessary, namely:
 
 - SCL
@@ -397,9 +405,6 @@ It is best to cut the connector and connect the cable ends directly to the pins 
 | 4           | white          | red         | GND       |
 | 5           | n.c.           | n.c.        | n.c.      |
 | 6           | yellow         | white       | PB8 (SCL) |
-
-Nunchuk plug - front view:
-![Nunchuk plug - front view](https://github.com/ukw100/STECCY/raw/main/images/steccy-nunchuk-plug.png "Nunchuk plug - front view")
 
 Since you have usually purchased a clone, you cannot rely on the colours. It is better to unscrew the connector and see the cable colours for yourself. My clone had the colour sequence given above. As an alternative to the cut-off method, there are also adapters for the Nunchuk plugs available on eBay. These can also be used for the Wii Classic Gamepad.
 
@@ -424,14 +429,14 @@ These will be described later.
 
 ## Speaker
 
+<img src="https://github.com/ukw100/STECCY/raw/main/images/steccy-amplifier.png" align="right" width="400">
+
 An active loudspeaker or a small audio amplifier can be connected to PC13 of the STM32. Active PC speakers, for example, work immediately.
 
 If you want to integrate something smaller into a STECCY enclosure, you can also set up an adjacent amplifier and connect a small speaker, e.g. one with 0.25W and 27mm diameter. R9 and R10 are in fact a potentiometer with 5k for volume adjustment.
 
 A cleaner solution would be to use 2 additional diodes to compensate for the BE-threshold voltage and reduce distortion. However, in view of the inferior sound quality, which the original Spectrum already had, these diodes can be dispensed with.
 
-Amplifier:
-![Amplifier](https://github.com/ukw100/STECCY/raw/main/images/steccy-amplifier.png "Amplifier")
 
 ## Games
 
@@ -607,9 +612,11 @@ Specification of the keyboard used.
 
 Possible values:
 
- ```KEYBOARD=PS2```
- ```KEYBOARD=USB```
- ```KEYBOARD=ZX```
+ ```
+ KEYBOARD=PS2
+ KEYBOARD=USB
+ KEYBOARD=ZX
+ ```
 
 Here are:
 
@@ -619,8 +626,10 @@ Here are:
 
 Several keyboards can be specified by repeating the KEYBOARD line, e.g.
 
- ```KEYBOARD=PS2```
- ```KEYBOARD=ZX```
+ ```
+ KEYBOARD=PS2
+ KEYBOARD=ZX
+ ```
 
 In this case, you can use a PS/2 and a ZX matrix keyboard at the same time. This can be useful for multi-user games.
 
@@ -642,7 +651,9 @@ The possible values are:
 | 2    | Flip Horizontal            |
 | 3    | Flip Vertical + Horizontal |
 
-Example: ```ORIENTATION=1```
+Example:
+
+```ORIENTATION=1```
 
 The F1 key can also be used to change the orientation during operation. At the end of the chapter Display, it is explained how to find out the correct value for your display.
 
@@ -652,8 +663,10 @@ RGB colour sequence on the TFT display. Most TFTs work with the RGB colour seque
 
 The following applies:
 
- ```RGB=0        # Standard order is RGB```
- ```RGB=1        # Non-standard is GRB```
+ ```
+ RGB=0        # Standard order is RGB
+ RGB=1        # Non-standard is GRB
+ ```
 
 This value should only be changed if false colours appear on the TFT.
 
@@ -664,10 +677,11 @@ The basic command ```BORDER 2``` should create a red screen border. If the borde
 Comments can be introduced in the INI file with "#" or ";".
 
 Example for a complete INI file:
+
 ```
 # PATH: Default is current directory (only QT and Linux), e.g. PATH=/home/pi/steccy
 PATH=c:\steccy
-# ROM: Default is 48.rom
+# ROM: Default is 128.rom
 ROM=128.rom
 # Autostart: Default is yes
 AUTOSTART=yes
@@ -690,6 +704,7 @@ STECCY under LinuxSTECCY also runs in the Linux desktop (X11) or frame buffer of
 ### Installation instructions:
 
 Log in as a normal user, e.g. as user "pi". Enter the following commands in the console:
+
 ```
  cd
  mkdir src
@@ -708,8 +723,10 @@ Ensure development environment is installed:
 
 Then build and install program 'steccy':
 
- ```make steccy```
- ```sudo make steccy-install```
+ ```
+ make steccy
+ sudo make steccy-install
+ ```
 
 ### Program 'xsteccy' for Linux desktop (X11):
 
@@ -719,13 +736,17 @@ Make sure libx11-dev is installed:
 
 Then create and install the programme 'xsteccy':
 
- ```make xsteccy```
- ```sudo make xsteccy-install```
+ ```
+ make xsteccy
+ sudo make xsteccy-install
+ ```
 
 Install STECCY desktop icon (LXDE desktop on Raspberry PI):
 
- ```cp steccy.desktop $HOME/Desktop```
- ```cp steccy.desktop $HOME/.local/share/applications/```
+ ```
+ cp steccy.desktop $HOME/Desktop
+ cp steccy.desktop $HOME/.local/share/applications/
+ ```
 
 Afterwards, the STECCY ICON should appear on the desktop as well as in the start menu under "Games".
 
@@ -735,8 +756,10 @@ This completes the installation. If necessary, the file $HOME/.steccy.ini should
 
 We now create this directory in the home directory:
 
- ```cd```
- ```mkdir steccy```
+ ```
+ cd
+ mkdir steccy
+ ```
 
 and then download the ROM files and put them in this directory. Tape files for games etc. should also be stored exclusively in this directory.
 
