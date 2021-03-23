@@ -181,6 +181,8 @@ For STECCY, the FSMC connector for the display and the SD card slot are needed. 
 
 ![7 inch TFT Display](https://github.com/ukw100/STECCY/raw/main/images/steccy-prototype.jpg "7 inch TFT Display")
 
+<img src="https://github.com/ukw100/STECCY/raw/main/images/steccy-ssd1963-tft-pins.png" width="150" align="right">
+
 A 7 inch TFT display with 800x480 pixels and SSD1963 controller can be used as the display. A touch screen is not required. The TFT display is available for approx. 50 EUR here in Germany, among other places, with short delivery time:
 
 https://eckstein-shop.de/70-800x480-TFT-LCD-Display-ohne-Touchscreen-SSD1963-MCU-Arduino-Kompatibel
@@ -192,8 +194,6 @@ The same can also be found for a lower price (approx. 30-35 EUR) at eBay or Alie
 This display is also available in the same resolution as a 5 inch display for less than 30 EUR. This can also be used. The SSD1963 controller and the resolution of **800x480 pixels** are important.
 
 The display is connected to the TFT pin socket of the STM32F407VET BlackBoard via the parallel FSMC interface of the STM32 as follows:
-
-<img src="https://github.com/ukw100/STECCY/raw/main/images/steccy-ssd1963-tft-pins.png" width="150" align="right">
 
 | STM32 TFT Pin | FSMC Name | STM32 Pin | Display Pin | Display Name | Remarks          |
 |:--------------|:----------|:---------:|:-----------:|:-------------|:-----------------|
