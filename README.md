@@ -84,6 +84,38 @@ If you don't want to translate the complete source code, you can also flash the 
 - [steccy-ili9341.hex](https://github.com/ukw100/STECCY/blob/main/bin/ILI9341-Release/steccy-ili9341.hex) for STM32F407VET6 with ILI9341 TFT display
 - [steccy.hex](https://github.com/ukw100/STECCY/blob/main/bin/SSD1963-Release/steccy.hex) for STM32F407VET6 with SSD1963 TFT display
 
+## Compiling
+
+For installation, it is sufficient to flash the right HEX file on the STM32F407VET6, see above
+
+If you want to compile the program yourself, you can use the IDE EmBitz, see also [www.embitz.org](https://www.embitz.org/).
+
+In EmBitz, 4 target variants are configured:
+
+- ILI9341-Debug
+- ILI9341-Release
+- SSD1963 debug
+- SSD1963-Release
+
+SSD1963-Release should then be selected for the SSD1963 display. If you use the ILI9341 display, select ILI9341-Release.
+
+As an alternative to EmBitz, you have to create a corresponding project or Makefile yourself. For this, the following options for the compiler should be set in addition to the optimisation (-O2 or -Os) and various warning levels:
+
+```
+ -DARM_MATH_CM4
+ -D__FPU_USED
+ -DSTM32F407VE
+ -DSTM32F4XX
+ -DUSE_STDPERIPH_DRIVER
+ -DHSE_VALUE=8000000
+ -fno-strict-aliasing
+ -DSSD1963
+```
+
+If you want to create the program version for ILI9341 displays, replace the option -DSSD1963 with -DILI9341.
+
+The QT source is in the subdirectory steccy-qt, the Linux source in the subdirectory steccy-lx. For instructions see STECCY under Linux below.
+
 ## SD Card
 
 To start STECCY, at least the ROM files, namely **128.rom** and **48.rom**, should be available on the SD card. The SD card is formatted as FAT32 on the PC, 128.rom and 48.rom are copied onto it and then inserted into the SD card slot of the STM32F407VET black board. In addition, you can also place the above-mentioned gw03.rom on the SD card and then load the GOSH ROM via the STECCY menu.
@@ -93,7 +125,7 @@ Furthermore, other ZX Spectrum programmes can be stored on the SD card, namely a
 The structure of these files is explained here, among other things:
 
 - TAP: [ZX Spectrum tape file: format specification](https://formats.kaitai.io/zx_spectrum_tap/index.html)
-- TZX: [TZX FORMAT](https://www.worldofspectrum.org/TZXformat.html)
+- TZX: [TZX FORMAT](http://k1.spdns.de/Develop/Projects/zasm/Info/TZX%20format.html)
 - Snapshots: [Z80 File Format](https://www.worldofspectrum.org/faq/reference/z80format.htm)
 
 The TZX file format is much more flexible than the TAP format. TZX also allows compression and fast loading routines that used to exist for the ZX Spectrum. However, STECCY only supports loading via the standard ROM routines (compressed and uncompressed), so fast loaders are not supported. Over 95 per cent of ZX-Spectrum programmes use the ROM routines, so there are no problems there.
