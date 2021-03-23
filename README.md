@@ -183,13 +183,7 @@ For STECCY, the FSMC connector for the display and the SD card slot are needed. 
 
 <img src="https://github.com/ukw100/STECCY/raw/main/images/steccy-ssd1963-tft-pins.png" width="150" align="right">
 
-A 7 inch TFT display with 800x480 pixels and SSD1963 controller can be used as the display. A touch screen is not required. The TFT display is available for approx. 50 EUR here in Germany, among other places, with short delivery time:
-
-https://eckstein-shop.de/70-800x480-TFT-LCD-Display-ohne-Touchscreen-SSD1963-MCU-Arduino-Kompatibel
-
-This is the model without touch screen.
-
-The same can also be found for a lower price (approx. 30-35 EUR) at eBay or Aliexpress under the keyword "**SSD1963 7" inch TFT LCD Module Display 800x480**" - usually even with touch screen. The touch field is not supported by STECCY, but is otherwise not a problem. If you find the same display without touch screen at a lower price, you should simply use this one.
+A 7 inch TFT display with 800x480 pixels and SSD1963 controller can be used as the display. A touch screen is optional, but not required. You will find this display at eBay or Aliexpress for approx. 30-35 EUR by using the keywords "**SSD1963 7" inch TFT LCD Module Display 800x480**". The touch field is not supported by STECCY, but is otherwise not a problem. If you find the same display without touch screen at a lower price, you should simply use this one.
 
 This display is also available in the same resolution as a 5 inch display for less than 30 EUR. This can also be used. The SSD1963 controller and the resolution of **800x480 pixels** are important.
 
