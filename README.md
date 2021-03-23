@@ -29,7 +29,7 @@ Some examples:
 |-|-|-|
 | ![ZX Basic](https://github.com/ukw100/STECCY/raw/main/images/steccy-basic.png "ZX Basic") | ![Manic Miner](https://github.com/ukw100/STECCY/raw/main/images/steccy-manic-miner.png "Manic Miner") | ![Manic Miner](https://github.com/ukw100/STECCY/raw/main/images/steccy-jetset.png "Manic Miner") |
 
-Loading and saving programmes is done via an SD card, which is FAT-formatted. Here, the cassette recorder routines in the virtual ROM are converted to load and save routines for SD cards. STECCY supports TAP, TZX and snapshot files for this purpose. Snapshots can be used to freeze and save the current state of the emulated ZX spectrum at any time. This makes it possible, for example, to continue playing a game the next day at exactly the same time as it was saved as a snapshot.
+Loading and saving programs is done via an SD card, which is FAT-formatted. Here, the cassette recorder routines in the virtual ROM are converted to load and save routines for SD cards. STECCY supports TAP, TZX and snapshot files for this purpose. Snapshots can be used to freeze and save the current state of the emulated ZX spectrum at any time. This makes it possible, for example, to continue playing a game the next day at exactly the same time as it was saved as a snapshot.
 
 The ZX-Spectrum 128K or ZX-Spectrum 48K is emulated. The virtual Spectrum 128K has a ROM with a size of 32KB and RAM with a size of 128KB, the Spectrum 48K has a ROM with a size of 16KB and RAM with a size of 48KB. 
 
@@ -57,7 +57,7 @@ The ULA chip also takes care of the Z80 interrupt, which ensures that the keyboa
 
 The Sinclair operating system, namely the ZX-Spectrum 128K or 48K ROM, consists of 16KB or 32KB data, which are mostly Z80 instructions. Since the copyright holder Amstrad has released the contents to the public domain, as long as the copyright notice remains intact, it is no problem to use the original ROM of the ZX-Spectrum 128K or even 48K for such an emulation. Yes, you are even allowed to redistribute the contents.
 
-See also Amstrad ROM permissions
+See also [Amstrad ROM permissions](https://worldofspectrum.net/assets/amstrad-roms.txt)
 
 You will find original ROM files from Sinclair in the folder "rom":
 
@@ -67,7 +67,7 @@ You will find original ROM files from Sinclair in the folder "rom":
 
 For 48u.rom see also **STM32 hardware extensions** below.
 
-Modifications and new implementations of the ZX-Spectrum-ROMs are also executable. The original ROM as well as many modifications and extensions can be found at Philip Kendall - The Spectrum ROMs collection.
+Modifications and new implementations of the ZX-Spectrum-ROMs are also available. The original ROM as well as many modifications and extensions can be found at Philip Kendall - The Spectrum ROMs collection.
 
 If you simply don't want to get used to the exotic command input of basic tokens by single keys, the "GOSH WONDERFUL ZX Spectrum ROM" for the ZX-Spectrum 48K is recommended. Here the BASIC commands are entered via single keys. The Spectrum 128K already provides the input of the basic tokens via single keys in the 128K-Basic anyway.
 
@@ -120,7 +120,7 @@ The QT source is in the subdirectory steccy-qt, the Linux source in the subdirec
 
 To start STECCY, at least the ROM files, namely **128.rom** and **48.rom**, should be available on the SD card. The SD card is formatted as FAT32 on the PC, 128.rom and 48.rom are copied onto it and then inserted into the SD card slot of the STM32F407VET black board. In addition, you can also place the above-mentioned gw03.rom on the SD card and then load the GOSH ROM via the STECCY menu.
 
-Furthermore, other ZX Spectrum programmes can be stored on the SD card, namely as TAP, TZX or Z80 files. The latter are snapshots of the emulated ZX-Spectrum 128K or ZX-Spectrum 48K.
+Furthermore, other ZX Spectrum programs can be stored on the SD card, namely as TAP, TZX or Z80 files. The latter are snapshots of the emulated ZX-Spectrum 128K or ZX-Spectrum 48K.
 
 The structure of these files is explained here, among other things:
 
@@ -128,9 +128,9 @@ The structure of these files is explained here, among other things:
 - TZX: [TZX FORMAT](http://k1.spdns.de/Develop/Projects/zasm/Info/TZX%20format.html)
 - Snapshots: [Z80 File Format](https://www.worldofspectrum.org/faq/reference/z80format.htm)
 
-The TZX file format is much more flexible than the TAP format. TZX also allows compression and fast loading routines that used to exist for the ZX Spectrum. However, STECCY only supports loading via the standard ROM routines (compressed and uncompressed), so fast loaders are not supported. Over 95 per cent of ZX-Spectrum programmes use the ROM routines, so there are no problems there.
+The TZX file format is much more flexible than the TAP format. TZX also allows compression and fast loading routines that used to exist for the ZX Spectrum. However, STECCY only supports loading via the standard ROM routines (compressed and uncompressed), so fast loaders are not supported. Over 95 per cent of ZX-Spectrum programs use the ROM routines, so there are no problems there.
 
-If you find a programme/game on the net in both formats (TAP and TZX), it is better to use the TAP file if in doubt. If the programme is in TZX format, it can happen in rare cases that STECCY cannot load this file completely. However, the probability is less than 5 per cent. In this case, you can also use the ZX Spectrum emulator "Fuse", which is freely available for Windows and Linux, to import the quick loader file there and then save it again as a snapshot. The snapshots can then also be used for STECCY without any problems.
+If you find a program/game in both formats (TAP and TZX), <ou should prefer the TAP file. If the program is in TZX format, it can happen in rare cases that STECCY cannot load this file completely. However, the probability is less than 5 per cent. In this case, you can also use the ZX Spectrum emulator "Fuse", which is freely available for Windows and Linux, to import the quick loader file there and then save it again as a snapshot. The snapshots can then also be used for STECCY without any problems.
 
 The software for using the SD card is [FatFs - Generic FAT Filesystem Module](http://elm-chan.org/fsw/ff/00index_e.html). Many thanks to ChaN for this!
 
@@ -189,7 +189,7 @@ This is the model without touch screen.
 
 The same can also be found for a lower price (approx. 30-35 EUR) at eBay or Aliexpress under the keyword "**SSD1963 7" inch TFT LCD Module Display 800x480**" - usually even with touch screen. The touch field is not supported by STECCY, but is otherwise not a problem. If you find the same display without touch screen at a lower price, you should simply use this one.
 
-This display is also available in the same resolution as a 5 inch display for less than 30 EUR. If the 7 inch display is too big for you, you can also use this one. The SSD1963 controller and the resolution of **800x480 pixels** are important.
+This display is also available in the same resolution as a 5 inch display for less than 30 EUR. This can also be used. The SSD1963 controller and the resolution of **800x480 pixels** are important.
 
 The display is connected to the TFT pin socket of the STM32F407VET BlackBoard via the parallel FSMC interface of the STM32 as follows:
 
@@ -424,7 +424,7 @@ The two Wii devices use the I2C protocol. For the connection with the STM32 4 co
 
 - SCL
 - SDA
-- 3,3V
+- 3.3V
 - GND
 
 It is best to cut the connector and connect the cable ends directly to the pins on the STM32 board. The colours of the cables are listed here:
@@ -442,22 +442,33 @@ Since you have usually purchased a clone, you cannot rely on the colours. It is 
 
 The Nunchuk controller has 2 buttons, namely the upper "C" button and the lower "Z" button. The latter serves as the fire button, the "C" button as the menu button with which you can both enter and exit the STECCY menu. The analogue stick is shown as a digital joystick - namely in the respective emulation. 
 
-| Key        | ZX Spectrum   | STECCY Menu                           |
-|:-----------|:--------------|:--------------------------------------|
-| "Z" below  | Fire          | Select menu entry or change selection |
-| "C" above  | Start Menu    | Back                                  |
-| Stick up   | Joystick up   | Menu entry up                         |
-| Stick down | Joystick down | Menu entry down                       |
-| Stick left | Joystick left | --                                    |
-| Stick right| Joystick right| ---                                   |
+| Key         | ZX Spectrum   | STECCY Menu                           |
+|:------------|:--------------|:--------------------------------------|
+| "Z" below   | Fire          | Select menu entry or change selection |
+| "C" above   | Start Menu    | Back                                  |
+| Stick up    | Joystick up   | Menu entry up                         |
+| Stick down  | Joystick down | Menu entry down                       |
+| Stick left  | Joystick left | --                                    |
+| Stick right | Joystick right| ---                                   |
 
-### Wii-Gampad
+### Wii Gamepad Pro
+
+<img align="right" width="150" src="https://github.com/ukw100/STECCY/raw/main/images/steccy-gamepad-pro.png">
 
 The gamepad controller has the same connections as the nunchuk controller, see above.
 
 Only the button assignments are different because the gamepad controller has many more buttons to operate.
 
-These will be described later. 
+| Key              | ZX Spectrum   | STECCY Menu                           |
+|:-----------------|:--------------|:--------------------------------------|
+| Select           | Turbo Mode    | --                                    |
+| HOME             | Start Menu    | Back                                  |
+| Start            | Z80 Reset     | --                                    |
+| Any other button | Fire          | Select menu entry or change selection |
+| Stick up         | Joystick up   | Menu entry up                         |
+| Stick down       | Joystick down | Menu entry down                       |
+| Stick left       | Joystick left | --                                    |
+| Stick right      | Joystick right| ---                                   |
 
 ## Speaker
 
@@ -587,7 +598,7 @@ Here you can either overwrite an existing TAPE file or create a new file on the 
 
  ```SAVE "Example"``` (keys: s CTRL-P Example CTRL-P RETURN).
 
-The Spectrum then displays the familiar message ```Start tape, then press any key.``` After confirming the message with RETURN, the programme is saved in the TAPE file under the name "Example" in TZX format.
+The Spectrum then displays the familiar message ```Start tape, then press any key.``` After confirming the message with RETURN, the program is saved to the TAPE file under the name "Example" in TZX format.
 
 If the program is to be started automatically after loading from a certain line (e.g. line 10), use the command:
 
@@ -602,6 +613,7 @@ If you want to close the tape file, select "Stop Record" in the STECCY menu. The
 #### SNAPSHOT
 
 The current state of the ZX spectrum is saved here. After entering the file name, RAM content and all Z80 registers are stored in the selected snapshot file. This can be loaded again later, for example to continue playing a game that has been started. 
+
 ## INI File
 
 Pre-settings can be made in the INI file steccy.ini. For the QT version, the INI file must be located where steccy.exe is also located. For the STM32 version, the file must simply be copied to the SD card.
@@ -628,13 +640,13 @@ Example: ```ROM=48.rom```
 
 ### AUTOSTART
 
-Specifies whether Basic programmes saved with Autostart should actually be started automatically. Default is "yes". Alternative is "no". The recommended setting is "yes
+Specifies whether Basic programmes saved with Autostart should actually be started automatically. Default is "yes". Alternative is "no". The recommended setting is "yes".
 
 Example: ```AUTOSTART=yes```
 
 ### AUTOLOAD
 
-Name of the TAPE file that is automatically loaded into the virtual Cassenrecorder. Default is none.
+Name of the TAPE file that is automatically loaded into the virtual tape player. Default is none.
 
 Example: ```AUTOLOAD=manic.tzx```
 
@@ -729,7 +741,7 @@ RGB=0
 
 ## STECCY on Linux
 
-STECCY under LinuxSTECCY also runs in the Linux desktop (X11) or frame buffer of a Linux console, for example on a Raspberry PI.
+STECCY also runs on the Linux desktop (X11) or frame buffer of a Linux console, for example on a Raspberry PI.
 
 ![STECCY on Linux](https://github.com/ukw100/STECCY/raw/main/images/xsteccy.png "STECCY on Linux")
 
