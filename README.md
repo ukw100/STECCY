@@ -304,6 +304,8 @@ Good example: [Sinclair ZX Spectrum keyboard layout](http://slady.net/Sinclair-Z
 
 ## PS/2 Keyboard
 
+<img align="right" width=30% src="https://github.com/ukw100/STECCY/raw/main/images/steccy-ps2-female-connector-front.png">PS/2 Female connector from the front 
+
 The PS/2 keyboard is connected via a 4-wire cable as follows:
 
 | PS/2 | STM32 | Remarks                  |
@@ -352,10 +354,10 @@ Summarised:
 If someone still has an original ZX keyboard, the following assignment of the connection foil will help:
 
 ```
-          Columns                           Lines
-          --- --- --- --- ---               --- --- --- --- --- --- --- ---
-Z80       D0  D1  D2  D3  D4                A11 A10 A9 A12 A13  A8  A14 A15
-STM32     PE0 PE1 PE2 PE3 PE4               PC3 PC2 PC1 PC4 PC5 PC0 PC6 PC7
+              Columns                           Lines
+              --- --- --- --- ---               --- --- --- --- --- --- --- ---
+Z80           D0  D1  D2  D3  D4                A11 A10 A9 A12 A13  A8  A14 A15
+STM32F407     PE0 PE1 PE2 PE3 PE4               PC3 PC2 PC1 PC4 PC5 PC0 PC6 PC7
 ```
 
 Note that the conductive areas on the foils are applied differently - once at the top (columns) and once at the bottom (rows).
@@ -376,6 +378,35 @@ The following keys function in the STECCY menu:
 - SS J - SymShift J: Minus
 - ENTER - ENTER: Confirm menu item
 - CS SPACE - BREAK: Exit menu item
+
+## ZX Keyboard as PS/2
+
+<img align="right" width=30% src="https://github.com/ukw100/STECCY/raw/main/images/steccy-keyboard-ps2.png">
+
+The variant of connecting the ZX Spectrum keyboard as a matrix via 13 cables has a serious disadvantage: the display together with the blackboard cannot be mounted far away from the ZX keyboard.
+
+For this reason, there is an alternative: The ZX Spectrum keyboard is converted to a PS/2 keyboard. Then it can be connected to the BlackBoard via a longer thin PS/2 cable.
+
+Here the rows/columns are connected to the STM32F103 on a BluePill board as follows: 
+
+```
+              Columns                           Lines
+              --- --- --- --- ---               --- --- --- --- --- --- --- ---
+Z80           D0  D1  D2  D3  D4                A11 A10 A9  A12 A13 A8  A14 A15
+STM32F103     PB3 PB4 PB5 PB6 PB7               PA3 PA2 PA1 PA4 PA5 PA0 PA6 PA7
+```
+
+Pin PB8 serves as an additional column for extensions. Again, an additional button can be placed between PB8 and PA3 to start the STECCY menu.
+
+| PS/2  | STM32F103 | Remarks                 |
+|:------|:---------:|:------------------------|
+| CLOCK | PB12      | pulled up on STM32F407  |
+| DATA  | PB13      | pulled up on STM32F407  |
+| GND   | GND       |                         |
+| 5V    | 5V        |                         |
+
+For more informations see the separate project on Github: [STECCY-Keyboard](https://github.com/ukw100/STECCY-Keyboard)
+
 
 ## Joystick-Emulation
 
