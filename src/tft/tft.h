@@ -40,6 +40,15 @@
 #  error Display driver not defined. Use -DSSD1963 or -DILI9341
 #endif
 
+#define BLACK565        0x0000
+#define RED565          0xF800
+#define GREEN565        0x07E0
+#define BLUE565         0x001F
+#define YELLOW565       (RED565   | GREEN565)
+#define MAGENTA565      (RED565   | BLUE565)
+#define CYAN565         (GREEN565 | BLUE565)
+#define WHITE565        0xFFFF
+
 extern void             tft_fadein_backlight (uint32_t);
 extern void             tft_fadeout_backlight (uint32_t);
 extern void             tft_backlight_on (void);

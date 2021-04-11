@@ -46,7 +46,7 @@
 #  if defined SSD1963
 #    define ZX_SPECTRUM_BORDER_SIZE             32              // 32 pixel (not doubled!)
 #  elif defined ILI9341
-#    define ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE  25              // top/bottom: 24 pixel
+#    define ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE  16              // top/bottom: regular 24 pixel, but we use only 16, 2x8 for status
 #    define ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE  32              // left/right: 32 pixel
 #  else
 #    error only SSD1963 or ILI9341 supported
@@ -82,6 +82,7 @@ extern void                     zxscr_init_display (void);
 extern void                     zxscr_update_display (void);
 
 #ifdef STM32F4XX
+extern void                     zxscr_update_status (void);
 extern void                     zxscr_set_display_flags (void);
 extern void                     zxscr_next_display_orientation (void);
 extern void                     zxscr_next_display_rgb_order (void);

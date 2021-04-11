@@ -76,15 +76,6 @@
 #define MENU_SAVE_STEP_Y        20                                                      // y step for next line in save menu
 #endif
 
-#define BLACK565                0x0000
-#define RED565                  0xF800
-#define GREEN565                0x07E0
-#define BLUE565                 0x001F
-#define YELLOW565               (RED565   | GREEN565)
-#define MAGENTA565              (RED565   | BLUE565)
-#define CYAN565                 (GREEN565 | BLUE565)
-#define WHITE565                0xFFFF
-
 #define MAX_FILENAMESIZE        16
 
 static char *                   autostart_entries[2] = { "Autostart: No", "Autostart: Yes" };
@@ -150,7 +141,7 @@ filescmp (const void * p1, const void * p2)
 static uint_fast16_t    last_joy_scancode = SCANCODE_NONE;
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * menu_get_scancode () - get scancode from keryboard or joystick
+ * menu_get_scancode () - get scancode from keyboard or joystick
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static uint_fast16_t
@@ -183,7 +174,32 @@ menu_get_scancode ()
             }
         }
     }
+    else
+    {
+        static uint8_t  shift = 0;
 
+        if (scancode == SCANCODE_LSHFT)
+        {
+            shift = 1;
+        }
+        else if (scancode == (SCANCODE_LSHFT | PS2KEY_RELEASED_FLAG))
+        {
+            shift = 0;
+        }
+        else if (shift)
+        {
+            switch (scancode)
+            {
+                case SCANCODE_SPACE:        scancode = SCANCODE_ESC;        break;
+                case SCANCODE_1:            scancode = SCANCODE_ESC;        break;
+                case SCANCODE_5:            scancode = SCANCODE_L_ARROW;    break;
+                case SCANCODE_6:            scancode = SCANCODE_D_ARROW;    break;
+                case SCANCODE_7:            scancode = SCANCODE_U_ARROW;    break;
+                case SCANCODE_8:            scancode = SCANCODE_R_ARROW;    break;
+                case SCANCODE_0:            scancode = SCANCODE_BSP;        break;
+            }
+        }
+    }
     return scancode;
 }
 
@@ -335,7 +351,11 @@ menu_load (uint_fast8_t romfiles)
                 break;
             }
         }
-        usb_hid_host_process (TRUE);
+
+        if (z80_settings.keyboard & KEYBOARD_USB)
+        {
+            usb_hid_host_process (TRUE);
+        }
     }
 
     tft_fill_rectangle (MENU_START_X, MENU_START_Y, MENU_END_X, MENU_END_Y, BLACK565);                      // erase file menu
@@ -468,7 +488,11 @@ menu_save (uint8_t is_snapshot)
                 draw_input_fname_field (MENU_START_X, MENU_START_Y + MENU_START_Y_OFFSET + MENU_SAVE_STEP_Y, fname_buf);
             }
         }
-        usb_hid_host_process (TRUE);
+
+        if (z80_settings.keyboard & KEYBOARD_USB)
+        {
+            usb_hid_host_process (TRUE);
+        }
     }
 
     tft_fill_rectangle (MENU_START_X, MENU_START_Y, MENU_END_X, MENU_END_Y, BLACK565);                      // erase file menu
@@ -585,8 +609,8 @@ menu (void)
 
                         if (fname)
                         {
-                            // printf ("z80_set_fname_rom (%s)\r\n", fname);
-                            z80_set_fname_rom (fname);
+                            // printf ("z80_load_rom (%s)\r\n", fname);
+                            z80_load_rom (fname);
                             do_break = 1;
                         }
                         else
@@ -657,7 +681,11 @@ menu (void)
                 break;
             }
         }
-        usb_hid_host_process (TRUE);
+
+        if (z80_settings.keyboard & KEYBOARD_USB)
+        {
+            usb_hid_host_process (TRUE);
+        }
     }
 
     draw_menu (0xFF, menu_stop_active);

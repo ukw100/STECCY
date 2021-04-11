@@ -6251,30 +6251,36 @@ z80_get_autostart (void)
  * z80_get_path() - get path of files
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
+#ifndef STM32F4XX
 char *
 z80_get_path (void)
 {
     return z80_settings.path;
 }
+#endif
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * set_fname_rom_buf () - set file name of ROM file
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-set_fname_rom_buf (char * romfile)
+set_fname_rom_buf (const char * romfile)
 {
+#ifdef STM32F4XX
+    (void) strncpy (fname_rom_buf, romfile, sizeof (fname_rom_buf) - 1);
+#else
     if (z80_settings.path[0])
     {
-        if (snprintf (fname_rom_buf, 2 * MAX_FILENAME_LEN, "%s/%s", z80_settings.path, romfile) < 0)
+        if (snprintf (fname_rom_buf, sizeof (fname_rom_buf), "%s/%s", z80_settings.path, romfile) < 0)
         {
             return;
         }
     }
     else
     {
-        (void) strncpy (fname_rom_buf, romfile, 2 * MAX_FILENAME_LEN);
+        (void) strncpy (fname_rom_buf, romfile, sizeof (fname_rom_buf) - 1);
     }
+#endif
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
@@ -6304,6 +6310,10 @@ load_rom (void)
             *p++ = UINT8_T (ch);
             z80_romsize++;
         }
+
+#ifdef STM32F4XX
+        zxscr_update_status ();
+#endif
 
         debug_printf ("ROM size: %04Xh\n", z80_romsize);
         fclose (fp);
@@ -6485,14 +6495,14 @@ save_snapshot (void)
                     val = 4;
                 }
             }
-            else if (idx == 2)                              // 35: memory paging
+            else if (idx == 2)                                  // 35: memory paging
             {
-                                                            // If in SamRam mode, bitwise state of 74ls259.
-                                                            // For example, bit 6=1 after an OUT 31,13 (=2*6+1)
-                                                            // If in 128 mode, contains last OUT to 0x7ffd
-                                                            // If in Timex mode, contains last OUT to 0xf4
+                                                                // If in SamRam mode, bitwise state of 74ls259.
+                                                                // For example, bit 6=1 after an OUT 31,13 (=2*6+1)
+                                                                // If in 128 mode, contains last OUT to 0x7ffd
+                                                                // If in Timex mode, contains last OUT to 0xf4
 
-                if (z80_romsize != 0x4000)                  // we are in 128K mode
+                if (z80_romsize != 0x4000)                      // we are in 128K mode
                 {
                     val = zxio_7ffd_value;
                 }
@@ -6511,9 +6521,9 @@ save_snapshot (void)
 
         if (z80_romsize == 0x4000)
         {
-            snap_write_page (fp, 1);                                // 1 + 3 = 4: write 16K page 8000 - BFFFF
-            snap_write_page (fp, 2);                                // 2 + 3 = 5: write 16K page C000 - FFFFF
-            snap_write_page (fp, 5);                                // 5 + 3 = 8: write 16K page 4000 - 7FFFF
+            snap_write_page (fp, 1);                            // 1 + 3 = 4: write 16K page 8000 - BFFFF
+            snap_write_page (fp, 2);                            // 2 + 3 = 5: write 16K page C000 - FFFFF
+            snap_write_page (fp, 5);                            // 5 + 3 = 8: write 16K page 4000 - 7FFFF
         }
         else
         {
@@ -6521,7 +6531,7 @@ save_snapshot (void)
 
             for (page = 0; page < 8; page++)
             {
-                snap_write_page (fp, page);                         // write 8 x 16K pages
+                snap_write_page (fp, page);                     // write 8 x 16K pages
             }
         }
 
@@ -7049,15 +7059,19 @@ z80_close_fname_load (void)
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * z80_set_fname_rom() - Set ROM file name
+ * z80_load_rom () - load new rom
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 void
-z80_set_fname_rom (const char * fname)
+z80_load_rom (const char * fname)
 {
     if (strlen (fname) > 4)
     {
-        strncpy (fname_rom_buf, fname, 2 * MAX_FILENAME_LEN);
+#ifdef QT_CORE_LIB  // TODO: QT includes complete path in fname
+        (void) strncpy (fname_rom_buf, fname, sizeof (fname_rom_buf) - 1);
+#else
+        set_fname_rom_buf (fname);
+#endif
         load_rom ();
         zxio_reset ();
     }
@@ -7437,6 +7451,9 @@ z80 (void)
             if (! z80_focus)
             {
                 menu ();
+#ifdef SSD1963
+                zxscr_update_status ();
+#endif
                 z80_focus = TRUE;
 #ifdef ILI9341
                 zxscr_display_cached = 0;                                          // redraw ZX screen
@@ -7798,7 +7815,9 @@ load_ini_file (void)
     FILE *  fp = nullptr;
     char *  p;
 
+#ifndef STM32F4XX
     z80_settings.path[0]            = '\0';
+#endif
     strcpy (z80_settings.romfile, "128.rom");
     z80_settings.autostart = 1;
     z80_settings.autoload[0]        = '\0';
@@ -7872,8 +7891,10 @@ load_ini_file (void)
 
                     if (! strcasecmp (buf, "PATH"))
                     {
+#ifndef STM32F4XX                                                                       // ignore path on STM32F4XX
                         strncpy (z80_settings.path, p, MAX_FILENAME_LEN - 1);
                         z80_settings.path[MAX_FILENAME_LEN - 1] = '\0';
+#endif
                     }
                     else if (! strcasecmp (buf, "ROM"))
                     {
@@ -7954,16 +7975,7 @@ zx_spectrum (int argc, char **argv)
     QApplication app(argc, argv);
 
     load_ini_file ();
-
-    if (z80_settings.path[0])
-    {
-        (void) snprintf (fname_rom_buf, 2 * MAX_FILENAME_LEN, "%s\\%s", z80_settings.path, z80_settings.romfile);
-    }
-    else
-    {
-        (void) strncpy (fname_rom_buf, z80_settings.romfile, 2 * MAX_FILENAME_LEN);                                        // default
-    }
-
+    set_fname_rom_buf (z80_settings.romfile);
     load_rom ();
     zxio_reset ();
 
@@ -7983,19 +7995,7 @@ void
 zx_spectrum (void)
 {
     load_ini_file ();
-
-    if (z80_settings.path[0])
-    {
-        if (snprintf (fname_rom_buf, 2 * MAX_FILENAME_LEN, "%s/%s", z80_settings.path, z80_settings.romfile) < 0)
-        {
-            return;
-        }
-    }
-    else
-    {
-        (void) strncpy (fname_rom_buf, z80_settings.romfile, 2 * MAX_FILENAME_LEN);                                        // default
-    }
-
+    set_fname_rom_buf (z80_settings.romfile);
     load_rom ();
     zxio_reset ();
     menu_init ();
@@ -8008,8 +8008,7 @@ void
 zx_spectrum (void)
 {
     load_ini_file ();
-
-    strncpy (fname_rom_buf, z80_settings.romfile, 2 * MAX_FILENAME_LEN);
+    set_fname_rom_buf (z80_settings.romfile);
     load_rom ();
     zxio_reset ();
 

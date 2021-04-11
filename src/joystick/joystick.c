@@ -129,6 +129,7 @@ gamepad_decode_buttons (void)
     }
     if (wii_data.buttons & WII_BUTTON_HOME_MASK)                        // Home ---> Menu
     {
+        ps2key_setmode (PS2KEY_GET_MODE);
         z80_leave_focus ();
     }
     else if (wii_data.buttons & WII_BUTTON_PLUS_MASK)                  // Start (+) ---> Z80 reset
@@ -266,6 +267,7 @@ nunchuk_decode_buttons (void)
 
     if (wii_data.buttons & WII_BUTTON_C_MASK)
     {
+        ps2key_setmode (PS2KEY_GET_MODE);
         z80_leave_focus ();
     }
 

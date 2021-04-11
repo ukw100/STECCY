@@ -51,7 +51,7 @@ board_led_init (void)
     GPIO_StructInit (&gpio);
     BOARD_LED_PERIPH_CLOCK_CMD (BOARD_LED_PERIPH, ENABLE);     // enable clock for LED Port
 
-    gpio.GPIO_Pin   = BOARD_LED2_LED | BOARD_LED3_LED;;
+    gpio.GPIO_Pin   = BOARD_LED2_LED | BOARD_LED3_LED;
     gpio.GPIO_Speed = GPIO_Speed_2MHz;
 
 #if defined (STM32F10X)
