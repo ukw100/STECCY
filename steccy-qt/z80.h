@@ -121,7 +121,9 @@
 
 typedef struct
 {
+#ifndef STM32F4XX
     char                        path[MAX_FILENAME_LEN];                         // search path for files
+#endif
     char                        romfile[MAX_FILENAME_LEN];                      // ROM file to load
     uint8_t                     autostart;                                      // flag: autostart BASIC programs
     char                        autoload[MAX_FILENAME_LEN];                     // TAPE file to autoload
@@ -178,7 +180,7 @@ extern void             z80_leave_focus (void);
 extern void             z80_next_display_orientation (void);
 extern void             z80_next_display_rgb_order (void);
 extern void             z80_next_turbo_mode (void);
-extern void             z80_set_fname_rom (const char * fname);
+extern void             z80_load_rom (const char * fname);
 extern void             z80_set_fname_load (const char * fname);
 extern void             z80_close_fname_load (void);
 extern void             z80_set_fname_save (const char * fname);

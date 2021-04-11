@@ -589,8 +589,7 @@ menu (char * path)
 
                         if (fname)
                         {
-                            snprintf (buf, 255, "%s/%s", path, fname);
-                            z80_set_fname_rom (buf);
+                            z80_load_rom (fname);
                             do_break = 1;
                         }
                         else

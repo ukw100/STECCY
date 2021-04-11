@@ -37,19 +37,8 @@
 static MyWidget *                   myw;
 #elif defined STM32F4XX
 #include "tft.h"
-#endif
-
-/*------------------------------------------------------------------------------------------------------------------------
- * Debugging Macros
- *------------------------------------------------------------------------------------------------------------------------
-*/
-#ifdef DEBUG
-static uint8_t debug = 0;
-#define debug_printf(...)   do { if (debug /* && iff1 */) { printf(__VA_ARGS__); fflush (stdout); }} while (0)
-#define debug_putchar(c)    do { if (debug /* && iff1 */) { putchar(c); fflush (stdout); }} while (0)
-#else
-#define debug_printf(...)
-#define debug_putchar(c)
+#include "font.h"
+#include "wii-gamepad.h"
 #endif
 
 #ifdef QT_CORE_LIB
@@ -466,12 +455,51 @@ zxscr_update_display (void)
     video_ram_changed = 0;
 }
 
+/*------------------------------------------------------------------------------------------------------------------------
+ * zxscr_update_status () - update lower status line on SSD1963
+ *------------------------------------------------------------------------------------------------------------------------
+ */
+void
+zxscr_update_status (void)
+{
+    uint_fast16_t           x;
+    uint_fast16_t           y;
+
+    y = TFT_HEIGHT - font_height () - 2;
+
+    if (wii_type != WII_TYPE_NONE)
+    {
+        x = TFT_WIDTH - 14 * font_width() - 2;                                          // 7 characters to print at (-14)
+
+        if (wii_type == WII_TYPE_NUNCHUK)
+        {
+            draw_string ((unsigned char *) "Nunchuk", y, x, RED565, BLACK565);
+        }
+        else // if (wii_type == WII_TYPE_GAMEPAD)
+        {
+            draw_string ((unsigned char *) "Gamepad", y, x, RED565, BLACK565);
+        }
+    }
+
+    x = TFT_WIDTH - 4 * font_width() - 2;                                              // 4 characters to print at (-4)
+
+    if (z80_romsize == 0x4000)
+    {
+        draw_string ((unsigned char *) " 48K", y, x, RED565, BLACK565);
+    }
+    else
+    {
+        draw_string ((unsigned char *) "128K", y, x, RED565, BLACK565);
+    }
+}
+
 #elif TFT_WIDTH == 320
 #  define TOP_OFFSET                0
 #  define LEFT_OFFSET               0
 #  define ZOOM                      1
 
 uint_fast8_t                        zxscr_display_cached = 0;
+
 /*------------------------------------------------------------------------------------------------------------------------
  * zxscr_update_display - update display - ILI9341 version
  *
@@ -626,6 +654,49 @@ zxscr_update_display (void)
     video_ram_changed = 0;
 }
 
+/*------------------------------------------------------------------------------------------------------------------------
+ * zxscr_update_status () - update lower status line on ILI9341
+ *------------------------------------------------------------------------------------------------------------------------
+ */
+void
+zxscr_update_status (void)
+{
+    uint_fast16_t           x;
+    uint_fast16_t           y;
+
+    x = 0;
+    y = TOP_OFFSET + 2 * ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+
+    tft_fill_rectangle (x, y, TFT_WIDTH - 1, TFT_HEIGHT - 1, BLACK565);
+
+    y = TOP_OFFSET + 2 * ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + 2;
+
+    if (wii_type != WII_TYPE_NONE)
+    {
+        x = 2;
+
+        if (wii_type == WII_TYPE_NUNCHUK)
+        {
+            draw_string ((unsigned char *) "Nunchuk", y, x, RED565, BLACK565);
+        }
+        else // if (wii_type == WII_TYPE_GAMEPAD)
+        {
+            draw_string ((unsigned char *) "Gamepad", y, x, RED565, BLACK565);
+        }
+    }
+
+    x = TFT_WIDTH - 4 * font_width() - 2;                                              // 4 characters to print
+
+    if (z80_romsize == 0x4000)
+    {
+        draw_string ((unsigned char *) " 48K", y, x, RED565, BLACK565);
+    }
+    else
+    {
+        draw_string ((unsigned char *) "128K", y, x, RED565, BLACK565);
+    }
+}
+
 #else
 #  error only TFT_WIDTH == 320 or TFT_WIDTH == 800 supported
 #endif
@@ -713,6 +784,7 @@ zxscr_next_display_orientation (void)
     }
 
     zxscr_set_display_flags ();
+    zxscr_update_status ();
 }
 #endif
 

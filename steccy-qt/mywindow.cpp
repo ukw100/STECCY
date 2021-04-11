@@ -170,7 +170,7 @@ void MyWidget::openrom ()
 
     QByteArray ba = fileName.toLocal8Bit();
     const char * fname = ba.data();
-    z80_set_fname_rom (fname);
+    z80_load_rom (fname);
 }
 
 void MyWidget::openfile ()
