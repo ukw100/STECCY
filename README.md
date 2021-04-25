@@ -16,6 +16,7 @@
 - Simulation of the Spectrum keyboard by a PS/2 or USB keyboard
 - Support of an original ZX-Spectrum keyboard (matrix)
 - Joystick emulation with Wii Nunchuk or Wii Gamepad or via PC keyboard
+- Patching games by POK files (infinite lives etc.)
 - Control of the two board LEDs via Z80-OUT commands (BASIC or assembler)
 - Control of STM32-USART2 via ZX-Basic PRINT and INPUT commands
 
@@ -473,8 +474,8 @@ The Nunchuk controller has 2 buttons, namely the upper "C" button and the lower 
 | "C" above   | Start Menu    | Back                                  |
 | Stick up    | Joystick up   | Menu entry up                         |
 | Stick down  | Joystick down | Menu entry down                       |
-| Stick left  | Joystick left | --                                    |
-| Stick right | Joystick right| ---                                   |
+| Stick left  | Joystick left | Page up                               |
+| Stick right | Joystick right| Page down                             |
 
 ### Wii Gamepad Pro
 
@@ -492,8 +493,8 @@ Only the button assignments are different because the gamepad controller has man
 | Any other button | Fire          | Select menu entry or change selection |
 | Stick up         | Joystick up   | Menu entry up                         |
 | Stick down       | Joystick down | Menu entry down                       |
-| Stick left       | Joystick left | --                                    |
-| Stick right      | Joystick right| ---                                   |
+| Stick left       | Joystick left | Page up                               |
+| Stick right      | Joystick right| Page down                             |
 
 ## Speaker
 
@@ -504,7 +505,6 @@ An active loudspeaker or a small audio amplifier can be connected to PC13 of the
 If you want to integrate something smaller into a STECCY enclosure, you can also set up an adjacent amplifier and connect a small speaker, e.g. one with 0.25W and 27mm diameter. R9 and R10 are in fact a potentiometer with 5k for volume adjustment.
 
 A cleaner solution would be to use 2 additional diodes to compensate for the BE-threshold voltage and reduce distortion. However, in view of the inferior sound quality, which the original Spectrum already had, these diodes can be dispensed with.
-
 
 ## Games
 
@@ -560,6 +560,18 @@ Especially on the STM32, it can happen with the game "Bubble Bobble" that the bu
 
 The STECCY menu can be activated with the TAB key on the PC keyboard. The menu can be exited again with the ESC key.
 
+Keys to use:
+
+| Key                        | Wii              | Function                              |
+|:---------------------------|:-----------------|:--------------------------------------|
+| Tab                        | "C" above        | Enter menu                            |
+| Down                       | Stick down       | Next item                             |
+| Up                         | Stick up         | Previous item                         |
+| Right or Page Down         | Stick right      | Page down                             |
+| Left or Page Up            | Stick up         | Page up                               |
+| ENTER or Space             | Fire ("Z" below) | Select item or change selection       |
+| ESC or BREAK (Shift Space) | "C" above        | Leave menu                            |
+
 The following menu items are available:
 
 #### Joystick
@@ -591,7 +603,7 @@ RESET emulates a hardware reset of the ZX-Spectrum. After a short time the copyr
 
 Here you can select the ROM to be used at start-up. All files on the SD card with the file extension ".ROM" are displayed for this purpose.
 
-The name of the standard ROM file is "48.rom". An alternative to the 48K ROM would be "gw03.rom", see above.
+The name of the standard ROM file is "128.rom". Would you like to emulate the original ZX Spectrum 48K, you can load here "48.rom". An alternative to the 48K ROM would be "gw03.rom", see above.
 
 Recommendation:
 
@@ -605,17 +617,23 @@ In the ST version this setting is changed with the space bar, in the QT version 
 
 #### LOAD
 
-After selecting the LOAD entry with the arrow keys and confirming with RETURN, the table of contents of the files on the SD card is displayed. Here you can activate the file by selecting it, i.e. load it into the virtual cassette recorder.
+This menu item is omitted from version 1.5.2. Instead, the file selection menu for TAPE files is now loaded automatically when you instruct the ZX Spectrum to load a file from tape - either by the ZX Spectrum TAPE LOADER or via the LOAD "" instruction.
 
-TAP, TZX or Z80 files can be selected. In the case of snapshots (ending .Z80), the file is loaded immediately and the ZX Spectrum is set to the state saved in the snapshot.
+The table of contents of the files on the SD card is then displayed. Here you can now load the TAPE file into the virtual cassette recorder by selecting it. TAP, TZX or Z80 files can be selected. In the case of snapshots (ending .Z80), the file is loaded immediately and the ZX Spectrum is set to the state saved in the snapshot.
 
 For TAP and TZX files, an additional action is necessary:
 
-After leaving the menu with ESC, the previously selected TAPE file can now be loaded by entering the basic command
+he key combination for loading a programme for the ZX Spectrum 48K is
 
    ```LOAD ""``` (keys: j CTRL-P CTRL-P RETURN)
 
-and execute it directly - if the AUTOSTART setting is YES. If no tape file was selected before, the Spectrum emulation is now waiting to catch up with the cassette recorder playback via the STECCY menu, i.e. insert a virtual cassette and start playback. This should be done now at the latest.
+If the AUTOSTART setting is YES, the program ist started automatically.
+
+### POKE
+
+If there is also a POK file of the same name for the loaded TZX or TAP file, this menu item is automatically activated. In this case, you can select entries from this POK file in order to become immortal for certain games, jump to new levels, etc.
+
+A vast number of POK files for all conceivable games can be found at https://github.com/ladyeklipse/all-tipshop-pokes.
 
 #### SAVE
 
@@ -639,7 +657,9 @@ If you want to close the tape file, select "Stop Record" in the STECCY menu. The
 
 The current state of the ZX spectrum is saved here. After entering the file name, RAM content and all Z80 registers are stored in the selected snapshot file. This can be loaded again later, for example to continue playing a game that has been started. 
 
-## INI File
+The following keys can be used in the main menu or in the submenus:
+
+## STECCY INI File steccy.ini on SD card
 
 Pre-settings can be made in the INI file steccy.ini. For the QT version, the INI file must be located where steccy.exe is also located. For the STM32 version, the file must simply be copied to the SD card.
 
@@ -713,7 +733,7 @@ This means: If not specified, the PS/2 keyboard are is active.
 Orientation on the TFT display. Default is 0. Only for STM32. In the QT version this entry is ignored.
 
 The possible values are:
-| Mode | Orientation               |
+| Mode | Orientation                |
 |:----:|:---------------------------|
 | 0    | Flip None (default)        |
 | 1    | Flip Vertical              |
@@ -796,6 +816,71 @@ Then build and install program 'steccy':
  make steccy
  sudo make steccy-install
  ```
+
+### Turbo Mode
+
+Turbo mode can be switched on with the F3 key or via the ZX Spectrum software.
+
+In this mode, the ZX Spectrum runs unbraked, i.e. under full CPU load. Furthermore, there is the possibility to switch on special "ROM HOOKS". In this case, special ROM routines are implemented by native CPU instructions of the STM32 or PC. At present, the BASIC commands "PLOT" and "DRAW" are accelerated when the ROM HOOKS are switched on.
+
+The OUT address for activating the ROM hooks is 65151.
+
+The following OUT commands can be used to switch the individual TURBO modes:
+
+| Value | Function                    |
+|:-----:|:----------------------------|
+| 254   | Turbo Mode on               |
+| 253   | ROM Hooks on                |
+| 252   | Turbo Mode and ROM Hooks on |
+| 0     | All Optimizations on        |
+| 255   | All Optimizations off       |
+
+== Assembler ==
+
+If you want to play around with Z80 assembler, the online assembler https://www.asm80.com/onepage/asmz80.html is recommended.
+
+Here you can have Z80 assembler source texts translated directly and download the compilation as a TAP file. You can then load the compilation directly into STECCY and try it out.
+
+Example:
+ CHAN_OPEN   equ  5633                      ; open channel routine in ROM
+ PRINT       equ  8252                      ; print routine in ROM
+
+             org  32768                     ; program start at 32768
+             ld   a, 2                      ; stream number
+             call CHAN_OPEN                 ; open channel
+             ld   de, text                  ; pointer to text
+             ld   bc, textend-text          ; length of text
+             jp   PRINT                     ; jump to PRINT in ROM
+ text        defb 'Hello, this is STECCY!'  ; output string
+             defb 13                        ; carriage return
+ textend     equ  $
+
+This programme outputs "Hello, this is STECCY!" on the ZX Spectrum screen.
+
+Procedure:
+
+* Call https://www.asm80.com/onepage/asmz80.html
+* Copy assember code into text area
+* Press button "ASSEMBLE and make .TAP"
+* Download compilation and save it, e.g. as "hello.tap"
+* Input on STECCY:
+            CLEAR 32000
+            LOAD "" CODE
+            RANDOMIZE USR 32768
+
+Select hello.tap when querying the TAPE file.
+
+The desired message should then appear on the display. However, if you want to output the message via the UART2 of the STM32, change the line
+            ld   a, 2
+into
+            ld   a, 4
+
+to use stream #4. However, the ROM 48u.rom is necessary for this, see above.
+
+The programme corresponds to the BASIC command
+            PRINT "Hello, this is STECCY!"
+respectively
+            PRINT #4;"Hello, this is STECCY!"
 
 ### Program 'xsteccy' for Linux desktop (X11):
 
