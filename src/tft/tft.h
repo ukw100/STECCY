@@ -44,9 +44,13 @@
 #define RED565          0xF800
 #define GREEN565        0x07E0
 #define BLUE565         0x001F
+#define DARK_RED565     0x7800
+#define DARK_GREEN565   0x03E0
+#define DARK_BLUE565    0x000F
 #define YELLOW565       (RED565   | GREEN565)
 #define MAGENTA565      (RED565   | BLUE565)
 #define CYAN565         (GREEN565 | BLUE565)
+#define GRAY565         (DARK_RED565 | DARK_GREEN565 | DARK_BLUE565)
 #define WHITE565        0xFFFF
 
 extern void             tft_fadein_backlight (uint32_t);

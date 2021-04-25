@@ -50,18 +50,7 @@ board_led_init (void)
 
     GPIO_StructInit (&gpio);
     BOARD_LED_PERIPH_CLOCK_CMD (BOARD_LED_PERIPH, ENABLE);     // enable clock for LED Port
-
-    gpio.GPIO_Pin   = BOARD_LED2_LED | BOARD_LED3_LED;
-    gpio.GPIO_Speed = GPIO_Speed_2MHz;
-
-#if defined (STM32F10X)
-    gpio.GPIO_Mode  = GPIO_Mode_Out_PP;
-#elif defined (STM32F4XX)
-    gpio.GPIO_Mode  = GPIO_Mode_OUT;
-    gpio.GPIO_OType = GPIO_OType_PP;
-    gpio.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-#endif
-
+    GPIO_SET_MODE_OUT_PP(gpio, BOARD_LED2_LED | BOARD_LED3_LED, GPIO_Speed_2MHz);
     GPIO_Init(BOARD_LED_PORT, &gpio);
     board_led2_off ();
     board_led3_off ();

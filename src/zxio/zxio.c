@@ -67,21 +67,30 @@ static uint8_t              kmatrix[ZX_KBD_ROWS] =                          // k
  *  Output:
  *  Hi  Lo
  *  --  FE    254       ---- ---- ---- ---0     ULA Border of screen, speaker & mic
- *  --  FD    253       ---- ---- 1111 1101     AY-3-8912 Soundchip of Spectrum 128K, not used
  *  --  FB    251       ---- ---- 1111 1011     ZX Printer, not used
- *  xx  7F    127       0xxx xxxx 0111 1111     I2C on STM32, where xx is the 7 bit address of I2C device
- *  FF  7F  65407       1111 1111 0111 1111     Board LEDs on STM32
- *  xx  7F              1xxx xxxx 0111 1111     reserved for future use, except FF7F for Board LEDs
+ *  7F  FD  32765       0111 1111 1111 1101     Spectrum 128K: RAM banking
+ *  FF  FD    253       1111 1111 1111 1101     Spectrum 128K: AY-3-8912 Soundchip: register selection
+ *  BF  FD  49149       1011 1111 1111 1101     Spectrum 128K: AY-3-8912 Soundchip: write to selected register
+ *  xx  7F    127       0xxx xxxx 0111 1111     STECCY: I2C on STM32, where xx is the 7 bit address of I2C device
+ *  FF  7F  65407       1111 1111 0111 1111     STECCY: Board LEDs on STM32
+ *  FE  7F  65151       1111 1110 0111 1111     STECCY: write to turbo mode register
+ *  xx  7F              1xxx xxxx 0111 1111     STECCY: reserved for future use, except FF7F & FE7F
  *
  *  Input:
  *  --  1F     31       ---- ---- 0001 1111     Kempston Joystick - 5 Bits used
- *  xx  7F    127       0xxx xxxx 0111 1111     I2C on STM32, where xx is the 7 bit address of I2C device
- *  FF  7F  65407       1111 1111 0111 1111     Board LEDs on STM32
- *  xx  7F              1xxx xxxx 0111 1111     reserved for future use, except FF7F for Board LEDs
+ *  xx  7F    127       0xxx xxxx 0111 1111     STECCY: I2C on STM32, where xx is the 7 bit address of I2C device
+ *  FF  7F  65407       1111 1111 0111 1111     STECCY: Board LEDs on STM32
+ *  FE  7F  65151       1111 1110 0111 1111     STECCY: read from turbo mode register
+ *  xx  7F              1xxx xxxx 0111 1111     STECCY: reserved for future use, except FF7F & FE7F
  *
  *  STM32 I/O: Lo = 0x7F
  *
- *  Examples for STM32 IO:
+ *  Examples for STECCY Turbo Mode:
+ *  Hi Lo     Dez       Value
+ *  FE 7F     65151     xxxx xxx1   Turbo Mode off
+ *  FE 7F     65151     xxxx xxx0   Turbo Mode on
+ *
+ *  Examples for STECCY STM32 I2C IO:
  *
  *  Hi Lo     Dez       Bin
  *  20 7F    8139       PCF8574 at base address 0x20
@@ -90,23 +99,25 @@ static uint8_t              kmatrix[ZX_KBD_ROWS] =                          // k
  *  FF 7F   65407       STM32 BlackBoard LEDs
  *------------------------------------------------------------------------------------------------------------------------
  */
-#define KEMPSTON_PORT       0x1F                                            // Port 31
-#define ZX_OUTPUT_PORT      0xFE                                            // lower border port
-#define STM32_IO_PORT       0x7F                                            // LEDs D2 & D3 on STM32 Blackboard
+#define KEMPSTON_PORT           0x1F                            // Port 31
+#define ZX_OUTPUT_PORT          0xFE                            // lower border port
+#define STECCY_LO_PORT          0x7F                            // STECCY Port low value
+#define STECCY_HI_LED_PORT      0xFF                            // STECCY Port high value: LEDs D2 & D3 on Blackboard
+#define STECCY_HI_TURBO_PORT    0xFE                            // STECCY Port high value: Turbo Mode register
 
 /*------------------------------------------------------------------------------------------------------------------------
  * Masks for ZX_OUTPUT_PORT:
  *------------------------------------------------------------------------------------------------------------------------
  */
-#define ZX_BORDER_MASK      0x07                                            // ZX Spectrum border:               bits 0-2
-#define ZX_MICRO_MASK       0x08                                            // ZX Spectrum microphone:           bit 3
-#define ZX_SPEAKER_MASK     0x10                                            // ZX Spectrum ear output & speaker: bit 5
+#define ZX_BORDER_MASK          0x07                            // ZX Spectrum border:               bits 0-2
+#define ZX_MICRO_MASK           0x08                            // ZX Spectrum microphone:           bit 3
+#define ZX_SPEAKER_MASK         0x10                            // ZX Spectrum ear output & speaker: bit 5
 
 /*------------------------------------------------------------------------------------------------------------------------
  * Kempston Joystick - 5 Bits used
  *------------------------------------------------------------------------------------------------------------------------
  */
-static uint8_t              kempston_value;                                 // state of Kempston Joystick
+static uint8_t              kempston_value;                     // state of Kempston Joystick
 
 /*------------------------------------------------------------------------------------------------------------------------
  * STM32 Black Board LEDs - 2 Bits used
@@ -189,27 +200,29 @@ zxio_out_port (uint8_t hi, uint8_t lo, uint8_t value)                           
         }
 #endif
     }
-    else if (lo == STM32_IO_PORT)                                           // lo = 0111 1111
+    else if (lo == STECCY_LO_PORT)                                          // lo = 0111 1111
     {
-#ifdef STM32F4XX
         if (! (hi & 0x80))                                                  // hi = 0bbb bbbb
         {
-#if 0
+#if 0 && defined STM32F4XX                                                  // yet deactivated
             uint_fast8_t     i2c_addr;
 
             i2c_addr = hi << 1;                                             // 8 bit I2C address is: bbbb bbb0
             i2c_write_buf (i2c_addr, &value, 1);
 #endif
         }
-        else if (hi == 0xFF)                                                // hi = 1111 1111
+        else if (hi == STECCY_HI_LED_PORT)                                  // hi = 1111 1111
         {
+#ifdef STM32F4XX
             led_state = value & 0x03;
             set_leds ();
-        }
-#else
-        printf ("STM32 OUT 0x%02X%02X,%02X\n", hi, lo, value);
-        fflush (stdout);
 #endif
+        }
+        else if (hi == STECCY_HI_TURBO_PORT)                                // hi = 1111 1110
+        {
+            z80_set_turbo_mode ((value & 0x01) ? 0 : 1);
+            z80_set_rom_hooks  ((value & 0x02) ? 0 : 1);
+        }
     }
     else if (hi == 0x7F && lo == 0xFD)
     {
@@ -313,35 +326,51 @@ zxio_in_port (uint8_t hi, uint8_t lo)
         if (hi & 0x20) { rtc &= kmatrix[5]; }
         if (hi & 0x40) { rtc &= kmatrix[6]; }
         if (hi & 0x80) { rtc &= kmatrix[7]; }
+
+        if (z80_user_cancelled_load)
+        {
+            if (rtc != 0xFF)                                                // any key pressed?
+            {
+                z80_user_cancelled_load = 0;
+            }
+        }
     }
     else if (lo == KEMPSTON_PORT)
     {
         rtc = kempston_value;
     }
-    else if (lo == STM32_IO_PORT)                                           // lo = 0111 1111
+    else if (lo == STECCY_LO_PORT)                                          // lo = 0111 1111
     {
 #ifdef STM32F4XX
-#if 0
-        uint_fast8_t    i2c_addr;
-#endif
-        uint8_t         value = 0xFF;
-
         if (! (hi & 0x80))                                                  // hi = 0bbb bbbb
         {
 #if 0
+            uint_fast8_t    i2c_addr;
+            uint8_t         value = 0xFF;
+
             i2c_addr = hi << 1;                                             // 8 bit I2C address is: bbbb bbb0
             i2c_read_buf (i2c_addr, &value, 1);
-#endif
             rtc = value;
+#endif
         }
-        else if (hi == 0xFF)                                                // hi = 1111 1111
+        else if (hi == STECCY_HI_LED_PORT)                                  // hi = 1111 1111
         {
             rtc = led_state;
         }
-#else
-        printf ("STM32 IN 0x%02X%02X\n", hi, lo);
-        fflush (stdout);
+        else
 #endif
+        if (hi == STECCY_HI_TURBO_PORT)                                     // hi = 1111 1110
+        {
+            if (z80_get_turbo_mode ())
+            {
+                rtc &= ~(0x01);
+            }
+
+            if (z80_get_rom_hooks ())
+            {
+                rtc &= ~(0x02);
+            }
+        }
     }
 
     return rtc;
@@ -387,3 +416,15 @@ zxio_release_key (uint8_t kb_idx)
     }
 }
 
+uint_fast8_t
+zxio_all_keys_released (void)
+{
+    uint_fast8_t    mask = kmatrix[0] & kmatrix[1] & kmatrix[2] & kmatrix[3] & kmatrix[4] & kmatrix[5] & kmatrix[6] & kmatrix[7];
+    uint_fast8_t    rtc = 0;
+
+    if (mask == 0xFF)
+    {
+        rtc = 1;
+    }
+    return rtc;
+}

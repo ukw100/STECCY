@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * io.h - I/O macros
  *
- * In stm32f4xx.h the following struct is defined:
+ * In older versions of stm32f4xx.h the following struct is defined:
  *
  * typedef struct
  * {
@@ -17,7 +17,7 @@
  *   __IO uint32_t AFR[2];
  * } GPIO_TypeDef;
  *
- * The definition of BSRRL and BSRRH is wrong. There should be a 32 bit register named BSRR.
+ * The definitions of BSRRL and BSRRH are wrong. There should be a 32 bit register named BSRR.
  * The definition above prevents access to the actual 32-bit register BSRR.
  *
  * There are now two ways to correct this.
@@ -74,10 +74,7 @@
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 #if defined (STM32F4XX)
-
-#include "stm32f4xx.h"
 #include "stm32f4xx_gpio.h"
-#include "stm32f4xx_rcc.h"
 
 typedef struct
 {
@@ -100,15 +97,81 @@ typedef struct
   __IO uint32_t AFR[2];         /*!< GPIO alternate function registers,     Address offset: 0x20-0x24 */
 } GPIO_TypeDefExt;
 
+#define GPIO_SET_MODE_OUT_OD(gp, pins, speed)       \
+do                                                  \
+{                                                   \
+    gp.GPIO_Pin     = (pins);                       \
+    gp.GPIO_Speed   = (speed);                      \
+    gp.GPIO_Mode    = GPIO_Mode_OUT;                \
+    gp.GPIO_OType   = GPIO_OType_OD;                \
+    gp.GPIO_PuPd    = GPIO_PuPd_NOPULL;             \
+} while (0)
+
+#define GPIO_SET_MODE_OUT_PP(gp, pins, speed)       \
+do                                                  \
+{                                                   \
+    gp.GPIO_Pin     = (pins);                       \
+    gp.GPIO_Speed   = (speed);                      \
+    gp.GPIO_Mode    = GPIO_Mode_OUT;                \
+    gp.GPIO_OType   = GPIO_OType_PP;                \
+    gp.GPIO_PuPd    = GPIO_PuPd_NOPULL;             \
+} while (0)
+
+#define GPIO_SET_MODE_IN_UP(gp, pins, speed)        \
+do                                                  \
+{                                                   \
+    gp.GPIO_Pin     = (pins);                       \
+    gp.GPIO_Speed   = (speed);                      \
+    gp.GPIO_Mode    = GPIO_Mode_IN;                 \
+    gp.GPIO_PuPd    = GPIO_PuPd_UP;                 \
+} while (0)
+
+#define GPIO_SET_MODE_IN_NOPULL(gp, pins, speed)    \
+do                                                  \
+{                                                   \
+    gp.GPIO_Pin     = (pins);                       \
+    gp.GPIO_Speed   = (speed);                      \
+    gp.GPIO_Mode    = GPIO_Mode_IN;                 \
+    gp.GPIO_PuPd    = GPIO_PuPd_NOPULL;             \
+} while (0)
+
 #define GPIO_RESET_BIT(port,pinmask)        do { (port)->BSRRH = (pinmask); } while (0)
 #define GPIO_SET_BIT(port,pinmask)          do { (port)->BSRRL = (pinmask); } while (0)
 #define GPIO_SET_VALUE(port,mask,value)     do { ((GPIO_TypeDefExt *) (port))->BSRR = ((mask) << 16) | (value); } while (0)
 
 #elif defined (STM32F10X)
 
-#include "stm32f10x.h"
-#include "stm32f10x_gpio.h"
-#include "stm32f10x_rcc.h"
+#define GPIO_SET_MODE_OUT_OD(gp, pins, speed)   \
+do                                              \
+{                                               \
+    gp.GPIO_Pin     = (pins);                   \
+    gp.GPIO_Speed   = (speed);                  \
+    gp.GPIO_Mode    = GPIO_Mode_Out_OD;         \
+} while (0)
+
+#define GPIO_SET_MODE_OUT_PP(gp, pins, speed)   \
+do                                              \
+{                                               \
+    gp.GPIO_Pin     = (pins);                   \
+    gp.GPIO_Speed   = (speed);                  \
+    gp.GPIO_Mode  = GPIO_Mode_Out_PP;           \
+} while (0)
+
+#define GPIO_SET_MODE_IN_UP(gp, pins, speed)    \
+do                                              \
+{                                               \
+    gp.GPIO_Pin     = (pins);                   \
+    gp.GPIO_Speed   = (speed);                  \
+    gp.GPIO_Mode    = GPIO_Mode_IPU;            \
+} while (0)
+
+#define GPIO_SET_MODE_IN_NOPULL(gp, pins, speed)    \
+do                                                  \
+{                                                   \
+    gp.GPIO_Pin     = (pins);                       \
+    gp.GPIO_Speed   = (speed);                      \
+    gp.GPIO_Mode    = GPIO_Mode_IN_FLOATING;        \
+} while (0)
 
 #define GPIO_RESET_BIT(port,pinmask)        do { (port)->BRR  = (pinmask); } while (0)
 #define GPIO_SET_BIT(port,pinmask)          do { (port)->BSRR = (pinmask); } while (0)

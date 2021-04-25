@@ -27,7 +27,9 @@
 #ifndef MENU_H
 #define MENU_H
 
-extern void         menu (void);
+extern void         menu (uint_fast8_t poke_file_active);
+extern char *       menu_start_load (void);
+extern void         menu_redraw (uint_fast8_t poke_file_active);
 extern void         menu_init (void);
 
 #endif // MENU_H

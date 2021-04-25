@@ -239,7 +239,7 @@
  *      F_INTERRUPTS    = 84000000 / 105 / 8 = 100000 (0.00% error)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
-#if defined (STM32F407VE)                                                   // STM32F407VE Black Board @168MHz
+#if defined (STM32F407)                                                     // STM32F407VE Black Board @168MHz
 #define TIM_CLK                 84000000L                                   // APB2 clock: 84 MHz
 #define TIM_PERIOD              7
 #else

@@ -198,7 +198,7 @@ wii_start_transmission (void)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 uint_fast8_t
-wii_init ()
+wii_init (void)
 {
     uint8_t         ident_buffer_nunchuk[6]         = { 0x00, 0x00, 0xA4, 0x20, 0x00, 0x00 };   // ident number of nunchuk
     uint8_t         ident_buffer_gamepad[6]         = { 0x00, 0x00, 0xA4, 0x20, 0x01, 0x01 };   // ident number of gamepad classic

@@ -309,44 +309,17 @@ i2c1_reset_bus (void)
 #if defined (STM32F4XX)
     RCC_AHB1PeriphClockCmd(PERIPH_SCL_PORT, ENABLE);                // for SCL
     RCC_AHB1PeriphClockCmd(PERIPH_SDA_PORT, ENABLE);                // for SDA
-
-    GPIO_StructInit (&gpio);
-
-    gpio.GPIO_Mode  = GPIO_Mode_OUT;
-    gpio.GPIO_OType = GPIO_OType_OD;
-    gpio.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-    gpio.GPIO_Speed = GPIO_Speed_2MHz;
-    gpio.GPIO_Pin   = SCL_PIN;                                      // SCL pin PB8
-    GPIO_Init(SCL_PORT, &gpio);
-
-    GPIO_StructInit (&gpio);
-
-    gpio.GPIO_Mode  = GPIO_Mode_IN;
-    gpio.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-    gpio.GPIO_Speed = GPIO_Speed_2MHz;
-    gpio.GPIO_Pin   = SDA_PIN;                                      // SDA pin PB9
-
-    GPIO_Init(SDA_PORT, &gpio);
-
 #elif defined (STM32F10X)
-
     RCC_APB2PeriphClockCmd(PERIPH_SCL_SDA_PORT, ENABLE);            // for SCL & SDA
+#endif
 
     GPIO_StructInit (&gpio);
-    gpio.GPIO_Pin   = SCL_PIN;                                      // SCL pin PB6
-    gpio.GPIO_Mode  = GPIO_Mode_Out_OD;
-    gpio.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_SET_MODE_OUT_OD(gpio, SCL_PIN, GPIO_Speed_2MHz);
     GPIO_Init(SCL_PORT, &gpio);
 
     GPIO_StructInit (&gpio);
-    gpio.GPIO_Pin   = SDA_PIN;                                      // SDA pin PB7
-    gpio.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-    gpio.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_SET_MODE_IN_NOPULL(gpio, SDA_PIN, GPIO_Speed_2MHz);
     GPIO_Init(SDA_PORT, &gpio);
-
-#else
-#error STM32 undefined
-#endif
 
     if (GPIO_ReadInputDataBit(SDA_PORT, SDA_PIN) == Bit_RESET)      // SDA low?
     {                                                               // yes...

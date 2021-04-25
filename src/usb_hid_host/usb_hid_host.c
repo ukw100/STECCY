@@ -203,16 +203,16 @@ static uint16_t usb_to_ps2_code[256] =
     SCANCODE_NONE,                                                                          // 0x48 Keyboard Pause
     SCANCODE_INSERT,                                                                        // 0x49 Keyboard Insert
     SCANCODE_HOME,                                                                          // 0x4a Keyboard Home
-    SCANCODE_NONE,                                                                          // 0x4b Keyboard Page Up
+    SCANCODE_PG_UP,                                                                         // 0x4b Keyboard Page Up
     SCANCODE_DELETE,                                                                        // 0x4c Keyboard Delete Forward
     SCANCODE_END,                                                                           // 0x4d Keyboard End
-    SCANCODE_NONE,                                                                          // 0x4e Keyboard Page Down
+    SCANCODE_PG_DN,                                                                         // 0x4e Keyboard Page Down
     SCANCODE_R_ARROW,                                                                       // 0x4f Keyboard Right Arrow
     SCANCODE_L_ARROW,                                                                       // 0x50 Keyboard Left Arrow
     SCANCODE_D_ARROW,                                                                       // 0x51 Keyboard Down Arrow
     SCANCODE_U_ARROW,                                                                       // 0x52 Keyboard Up Arrow
 
-    SCANCODE_NONE,                                                                          // 0x53 Keyboard Num Lock and Clear
+    SCANCODE_NUM,                                                                           // 0x53 Keyboard Num Lock and Clear
     SCANCODE_KP_SLASH,                                                                      // 0x54 Keypad /
     SCANCODE_KP_ASTERISK,                                                                   // 0x55 Keypad *
     SCANCODE_KP_MINUS,                                                                      // 0x56 Keypad -
@@ -635,7 +635,7 @@ usb_hid_host_process (uint_fast8_t call_ps2key_setscancode)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 void
-usb_hid_host_init ()
+usb_hid_host_init (void)
 {
     uint_fast16_t i;
     uint_fast16_t tries;

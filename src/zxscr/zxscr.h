@@ -68,10 +68,25 @@ extern volatile uint8_t         attr_ram_blocked;                           // f
 extern volatile uint8_t         video_ram_changed;                          // flag: video ram changed
 #else
 extern uint8_t                  video_ram_changed;                          // flag: video ram changed
-#ifdef ILI9341
+
+#ifdef STM32F4XX
+#include "tft-config.h"
+
+extern uint_fast8_t             zxscr_force_update;
 extern uint_fast8_t             zxscr_display_cached;
-#endif
-#endif
+
+#if TFT_WIDTH == 800
+#  define ZXSCR_TOP_OFFSET      16
+#  define ZXSCR_LEFT_OFFSET     8
+#  define ZXSCR_ZOOM            2
+#else
+
+#  define ZXSCR_TOP_OFFSET      0
+#  define ZXSCR_LEFT_OFFSET     0
+#  define ZXSCR_ZOOM            1
+#endif // TFT_WIDTH
+#endif // STM32F4XX
+#endif // else QT_CORE_LIB
 
 extern uint8_t                  zx_border_color;                            // current border color - 3 bits used
 

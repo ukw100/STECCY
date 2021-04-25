@@ -3,7 +3,7 @@
  *-------------------------------------------------------------------------------------------------------------------------------------------
  * MIT License
  *
- * Copyright (c) 2020 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2020-2021 Frank Meyer - frank(at)fli4l.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -290,7 +290,7 @@ x11_init (char * geometry)
         return -1;
     }
 
-#ifdef DEBUG
+#if defined DEBUG
     int             screen_num      = DefaultScreen(display);
     unsigned int    display_width   = DisplayWidth(display, screen_num);
     unsigned int    display_height  = DisplayHeight(display, screen_num);
@@ -427,7 +427,7 @@ x11_event (void)
 
     long event_mask = KeyPressMask | KeyReleaseMask | ExposureMask | FocusChangeMask;
     // XNextEvent(display, &event);
- 
+
     if (XCheckWindowEvent(display, win, event_mask, &event))
     {
         if (event.type == KeyPress)
@@ -476,7 +476,7 @@ x11_event (void)
             }
             else
             {
-                menu_redraw ();
+                menu_redraw (0xFF);
                 z80_display_cached = 0;
             }
             debug_printf( "Expose %d\n", event.type);
@@ -511,6 +511,13 @@ fill_rectangle (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t col
 }
 
 void
+draw_rectangle (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
+{
+    XSetForeground(display, gc, color);
+    XDrawRectangle(display, win, gc, x1, y1, x2 - x1 + 1, y2 - y1 + 1);
+}
+
+void
 x11_flush (void)
 {
     XFlush(display);
@@ -522,7 +529,7 @@ x11_flush (void)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 void
-x11_deinit ()
+x11_deinit (void)
 {
     XAutoRepeatOn (display);
     XCloseDisplay(display);

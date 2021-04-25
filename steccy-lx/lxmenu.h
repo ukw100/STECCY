@@ -3,7 +3,7 @@
  *-------------------------------------------------------------------------------------------------------------------------------------------
  * MIT License
  *
- * Copyright (c) 2020 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2020-2021 Frank Meyer - frank(at)fli4l.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,10 @@
 #ifndef LXMENU_H
 #define LXMENU_H
 
-extern void         menu (char * path);
-extern void         menu_redraw (void);
+extern void         menu (char * path, uint_fast8_t poke_file_active);
+extern char *       menu_start_load (char * path);
+extern void         menu_update_status (void);
+extern void         menu_redraw (uint_fast8_t poke_file_active);
 extern void         menu_init (void);
 
 #endif // LXMENU_H

@@ -32,4 +32,5 @@ extern void         zxio_out_port (uint8_t hi, uint8_t lo, uint8_t value);
 extern uint8_t      zxio_in_port (uint8_t hi, uint8_t lo);
 extern void         zxio_press_key (uint8_t kb_idx);
 extern void         zxio_release_key (uint8_t kb_idx);
+extern uint_fast8_t zxio_all_keys_released (void);
 

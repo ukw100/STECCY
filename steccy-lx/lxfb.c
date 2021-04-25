@@ -3,7 +3,7 @@
  *-------------------------------------------------------------------------------------------------------------------------------------------
  * MIT License
  *
- * Copyright (c) 2020 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2020-2021 Frank Meyer - frank(at)fli4l.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,6 +70,29 @@ fill_rectangle (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t col
         {
             fbp[y * fb_line_length + x] = color;
         }
+    }
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * draw_rectangle - draw rectangle
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+void
+draw_rectangle (uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
+{
+    int y;
+    int x;
+
+    for (y = y1; y <= y2; y ++)
+    {
+        fbp[y * fb_line_length + x1] = color;
+        fbp[y * fb_line_length + x2] = color;
+    }
+
+    for (x = x1; x <= x2; x++)
+    {
+        fbp[y1 * fb_line_length + x] = color;
+        fbp[y2 * fb_line_length + x] = color;
     }
 }
 

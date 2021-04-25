@@ -49,9 +49,12 @@
 #include "delay.h"
 #include "console.h"
 #include "menu.h"
-volatile uint_fast8_t       update_display;
-volatile uint32_t           uptime;
+#include "ff.h"
+volatile uint_fast8_t           update_display;
+volatile uint32_t               uptime;
 #elif defined FRAMEBUFFER || defined X11
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
 #if defined FRAMEBUFFER
@@ -60,27 +63,26 @@ volatile uint32_t           uptime;
 #include "lxx11.h"
 #endif
 #include "lxmenu.h"
-volatile uint_fast8_t       steccy_exit = 0;
-static uint_fast8_t         update_display;
+volatile uint_fast8_t           steccy_exit = 0;
+static uint_fast8_t             update_display;
 #endif
 
-#define TRUE                1
-#define FALSE               0
+#define TRUE                    1
+#define FALSE                   0
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * Force inlining:
+ * Force inlining
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifdef STM32F4XX                                                    // always inline functions on STM32F4
-#define FORCE_INLINING      1
+#define FORCE_INLINING          1
 #else                                                               // no need to force inlining, any desktop PC is fast enough
-#define FORCE_INLINING      0
+#define FORCE_INLINING          0
 #endif
-
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * Debugging:
+ * Debugging
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #undef DEBUG
 #undef DEBUG_ONLY_RAM
 
@@ -88,36 +90,48 @@ static uint_fast8_t         update_display;
 #define INLINE                                                      // don't inline in DEBUG mode
 #else
 #if FORCE_INLINING == 1
-#  define INLINE inline     __attribute__((always_inline))          // force compiler to inline
+#  define INLINE inline         __attribute__((always_inline))      // force compiler to inline
 #else
 #  define INLINE
 #endif
 #endif
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * Z80 emulator settings:
+ * Z80 emulator settings
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
-Z80_SETTINGS                        z80_settings;
-uint_fast16_t                       z80_romsize;
+ */
+Z80_SETTINGS                    z80_settings;
+uint_fast16_t                   z80_romsize;
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * ZX Spectrum system variables
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+#define COORDS_X                23677                               // x coordinate of last point plotted
+#define COORDS_Y                23678                               // y coordinate of last point plotted
+#define P_FLAG                  23697                               // more flags
+
+#define ATTR_T                  23695                               // temporary current colors, etc
+#define MASK_T                  23696                               // temporary mask, used for transparent colors
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * STECCY Hooks
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
-#define STECCY_HOOK_ADDRESS         0x386E                          // free space in SINCLAIR ROM: 0x386E - 0x3CFF
-#define SERIAL_OUTPUT               0x3CFE
-#define SERIAL_INPUT                0x3CFF
-static int                          hooks_active = 0;
+ */
+#define STECCY_HOOK_ADDRESS     0x386E                              // free space in SINCLAIR ROM: 0x386E - 0x3CFF
+#define SERIAL_OUTPUT           0x3CFE
+#define SERIAL_INPUT            0x3CFF
+static int                      hooks_active = 0;
+uint_fast8_t                    z80_user_cancelled_load;
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * T-states in the upper 32KB RAM (no ULA access to RAM) or ROM
  *
- * This emulator should calculate 33588 T-states for 10 msec.
+ * This emulator should calculate 33588 T-states for 10 msec (48.rom)
  *
  * If some clock cycle values must be corrected below, then you
  * should rerun the Program "checktimes" in checktimes.tzx.
- * This program should display the value "1886" as result.
+ * This program should display the value "1886" as result on a Spectrum 48K.
  *
  * Assembler listing:
  *
@@ -137,7 +151,14 @@ static int                          hooks_active = 0;
  *          JR   NZ,nxt
  *          RET
  *
- * BC holds now the value 1886.
+ * BC should hold the values 1886, 1881, or 1891 afterwards.
+ *
+ * Values:
+ *
+ * Hardware/ROM                 Fuse    STECCY (Linux)
+ * ZX Spectrum  48K:            1886    1886
+ * ZX Spectrum 128K:            1881    1872
+ * ZX Spectrum 128K in 48K ROM: 1891    1883
  *
  * ZX Spectrum Basic Program:
  *
@@ -157,14 +178,14 @@ static int                          hooks_active = 0;
  *    250 DATA 201
  *
  * This program measures the speed of incrementation of the BC register against the time spent in ZX ROM interrupt
- * routine triggered by ULA. The algorithm has been found in a ZX Spectrum game. Perhaps the game wanted to
- * determine if running on Timex or ZX-Spectrum (60Hz/50Hz). Or the debugging of the program should be prevented.
+ * routine triggered by ULA. The algorithm has been found in a ZX Spectrum game to distinguish between 48K and 128K
+ * model.
  *
  * On the STM32F4XX, the clock must be synchronised at short intervals for the speaker to produce correct frequencies.
  * Here we sync the clock each 200 usec, so we can update the speaker with a frequency of max. 5 kHz.
  * On other platforms we sync the clock each 10 msec.
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #if defined STM32F4XX
 #define CLOCKCYCLES_PER_200_USEC      672                                   // 672 (75%) and 671 (25%)
 #define CLOCKCYCLES_COUNT_200_USEC    100                                   // 100 * 200 usec = 20 msec = 50Hz
@@ -184,7 +205,7 @@ static int                          hooks_active = 0;
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * Debugging Macros
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #ifdef DEBUG
 static uint8_t debug = 0;
 #define debug_printf(...)           do { if (debug /* && iff1 */) { printf(__VA_ARGS__); fflush (stdout); }} while (0)
@@ -197,7 +218,7 @@ static uint8_t debug = 0;
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * Z80 flags
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #define FLAG_IDX_C      0                                                   // CARRY - must be 1
 #define FLAG_IDX_N      1                                                   // ADD (0) or SUBTRACT (1)
 #define FLAG_IDX_PV     2                                                   // PARITY (count of 1) or OVERFLOW (even: set to 1, odd: set to 0)
@@ -249,7 +270,7 @@ static uint8_t debug = 0;
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * Z80 conditions
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #define COND_C          NEG_FLAG_FALSE, FLAG_IDX_C                          // condition: carry set
 #define COND_NC         NEG_FLAG_TRUE,  FLAG_IDX_C                          // condition: carry not set
 #define COND_N          NEG_FLAG_FALSE, FLAG_IDX_N                          // condition: subtract
@@ -266,7 +287,7 @@ static uint8_t debug = 0;
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * Z80 registers
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #define REG_IND_HL_POS  6                                                   // position of HL register in BITS opcode
 
 #define REG_IDX_B       0                                                   // index of reg B
@@ -327,7 +348,7 @@ static uint8_t          z80_regs2[N_REGS];                                  // s
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * special Z80 registers
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 static uint8_t          interrupt_mode = 0;                                 // current interrupt mode
 static uint8_t          reg_I;                                              // interrupt register
 static uint8_t          reg_R;                                              // refresh register, yet not used
@@ -336,7 +357,7 @@ static uint16_t         reg_SP;                                             // s
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * Z80 register names - used by disassembler in debug mode
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #ifdef DEBUG
 static const char *     z80_r_names[12] =
 {
@@ -357,7 +378,7 @@ static const char *     z80_flagnames[16] =
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * register access macros - get
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #define GET_A()             (reg_A)
 #define GET_F()             (reg_F)
 #define GET_B()             (reg_B)
@@ -382,7 +403,7 @@ static const char *     z80_flagnames[16] =
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * register access macros - set
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 #define SET_A(n)            do { reg_A   = UINT8_T ((n)); } while (0)
 #define SET_F(n)            do { reg_F   = UINT8_T ((n)); } while (0)
 #define SET_B(n)            do { reg_B   = UINT8_T ((n)); } while (0)
@@ -409,7 +430,7 @@ static const char *     z80_flagnames[16] =
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * state variables used by Z80 emulator
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 static uint16_t             cur_PC;                                         // current PC
 static uint16_t             reg_PC;                                         // PC register
 static uint8_t              iff1;                                           // interrupt flag #1
@@ -422,7 +443,7 @@ static uint32_t             clockcycles;                                    // c
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * Z80 interrupts triggered by ZX spectrum ULA
  *-------------------------------------------------------------------------------------------------------------------------------------------
-*/
+ */
 static uint8_t              z80_interrupt           = 0;                    // flag: 50Hz interrupt occured
 
 #ifdef QT_CORE_LIB
@@ -433,17 +454,19 @@ static volatile uint8_t     z80_do_pause            = 0;                    // f
  * ZX spectrum tape variables
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
-static char                 fname_rom_buf[MAX_FILENAME_LEN * 2 + 1];        // name of ROM file
+static char                 fname_rom_buf[Z80_MAX_FILENAME_LEN * 2 + 1];    // name of ROM file
 
-static char                 snapshot_save_fname[256];                       // snapshot file name (save)
+static char                 snapshot_save_fname[Z80_MAX_FILENAME_LEN + 1];  // snapshot file name (save)
 static volatile int         snapshot_save_valid = 0;                        // flag: snapshot (save) file name is valid
 
-static char                 fname_load_buf[256];                            // tape file name (load)
+static char                 fname_load_buf[Z80_MAX_FILENAME_LEN + 1];       // tape file name (load)
 static volatile int         fname_load_valid;                               // flag: tape (load) file name is valid
 static volatile int         fname_load_snapshot_valid;                      // flag: snapshot (load) file name is valid
 static uint8_t              tape_load_format;                               // format of tape file
+static char                 fname_poke_buf[Z80_MAX_FILENAME_LEN + 1];       // poke file name
+static uint_fast8_t         poke_file_active = 0;                           // flag: poke file name active
 
-static char                 fname_save_buf[256];                            // tape file name (save)
+static char                 fname_save_buf[Z80_MAX_FILENAME_LEN + 1];       // tape file name (save)
 static volatile int         fname_save_valid;                               // flag: (save) tape file name is valid
 
 #if defined STM32F4XX || defined FRAMEBUFFER || defined X11
@@ -1020,7 +1043,7 @@ cmd_adc_hl_rr (uint8_t rridx)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static INLINE void
-cmd_adc_hl_sp ()
+cmd_adc_hl_sp (void)
 {
     uint32_t    result32;
 
@@ -1999,7 +2022,7 @@ cmd_cpir (void)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static INLINE void
-cmd_cpl()
+cmd_cpl (void)
 {
     ADD_CLOCKCYCLES(4);
     reg_A = ~reg_A;
@@ -2024,7 +2047,7 @@ cmd_cpl()
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static INLINE void
-cmd_daa()
+cmd_daa (void)
 {
     uint16_t    result16;
     uint8_t     correction;
@@ -3669,7 +3692,7 @@ cmd_ld_ind_nn_rr (uint8_t rridx)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static INLINE void
-cmd_ld_ind_nn_hl ()
+cmd_ld_ind_nn_hl (void)
 {
     uint16_t    addr    = get_nn ();
     uint8_t     h;
@@ -6208,6 +6231,12 @@ z80_leave_focus (void)
 {
     z80_focus = FALSE;
 }
+
+void
+z80_enter_focus (void)
+{
+    z80_focus = TRUE;
+}
 #endif
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
@@ -6224,8 +6253,70 @@ z80_next_turbo_mode (void)
     {
         z80_settings.turbo_mode = 0;
     }
+
+    z80_settings.rom_hooks = z80_settings.turbo_mode;
+
+#if defined STM32F4XX
+        zxscr_update_status ();
+#elif defined unix
+        menu_update_status ();
+#endif
+}
+
+void
+z80_set_turbo_mode (uint_fast8_t active)
+{
+    if (z80_settings.turbo_mode != active)
+    {
+        z80_settings.turbo_mode = active;
+#if defined STM32F4XX
+        zxscr_update_status ();
+#elif defined unix
+        menu_update_status ();
+#endif
+    }
+}
+
+uint_fast8_t
+z80_get_turbo_mode (void)
+{
+    return z80_settings.turbo_mode;
+}
+
+void
+z80_set_rom_hooks (uint_fast8_t active)
+{
+    if (z80_settings.rom_hooks != active)
+    {
+        z80_settings.rom_hooks = active;
+#if defined STM32F4XX
+        zxscr_update_status ();
+#elif defined unix
+        menu_update_status ();
+#endif
+    }
+}
+
+uint_fast8_t
+z80_get_rom_hooks (void)
+{
+    return z80_settings.rom_hooks;
 }
 #endif
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * z80_get_poke_file () - get poke file name
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+char *
+z80_get_poke_file (void)
+{
+    if (poke_file_active)
+    {
+        return fname_poke_buf;
+    }
+    return (char *) 0;
+}
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * z80_set_autostart() - set flag: autostart Basic programs
@@ -6311,8 +6402,10 @@ load_rom (void)
             z80_romsize++;
         }
 
-#ifdef STM32F4XX
+#if defined STM32F4XX
         zxscr_update_status ();
+#elif defined unix
+        menu_update_status ();
 #endif
 
         debug_printf ("ROM size: %04Xh\n", z80_romsize);
@@ -6585,7 +6678,7 @@ snap_read_word (FILE * fp, uint16_t * wp)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-load_snapshot ()
+load_snapshot (void)
 {
     FILE *      fp;
 
@@ -6719,9 +6812,6 @@ load_snapshot ()
                             set_fname_rom_buf ("48.rom");
                             load_rom ();
                             zx_ram_init (z80_romsize);
-#ifdef unix
-                            menu_redraw ();
-#endif
                         }
                     }
                     else if ((version == 2 && (val == 3 || val == 4)) ||
@@ -6733,9 +6823,6 @@ load_snapshot ()
                             set_fname_rom_buf ("128.rom");
                             load_rom ();
                             zx_ram_init (z80_romsize);
-#ifdef unix
-                            menu_redraw ();
-#endif
                         }
                     }
                 }
@@ -6963,9 +7050,105 @@ tape_prepare_load (uint8_t use_regs2)
     }
 #endif
 
-    if (fname_load_valid)
+    if (! z80_user_cancelled_load && ! fname_load_valid)
     {
+        if (zxio_all_keys_released ())
+        {
+            char *  fname;
+
+            z80_user_cancelled_load = 1;
+
+#ifdef STM32F4XX
+            fname = menu_start_load ();
+
+            if (fname)
+            {
+                int             len;
+
+                poke_file_active = 0;
+                z80_user_cancelled_load = 0;
+                z80_set_fname_load (fname);
+
+                len = strlen (fname_load_buf) - 4;
+
+                if (len >= 0 && fname_load_buf[len] == '.')
+                {
+                    FILINFO fno;
+
+                    strcpy (fname_poke_buf, fname_load_buf);
+                    strcpy (fname_poke_buf + len, ".pok");
+                    // console_printf ("%s\r\n", fname_poke_buf);
+
+                    if (f_stat (fname_poke_buf, &fno) == FR_OK)
+                    {
+                        poke_file_active = 1;
+                    }
+                    else
+                    {
+                        fname_poke_buf[0] = '\0';
+                    }
+                }
+                else
+                {
+                    fname_poke_buf[0] = '\0';
+                }
+
+                rtc = tape_load (fname_load_buf, tape_load_format, base_addr, maxlen, load, load_data);
+#ifdef SSD1963
+                menu_redraw (poke_file_active);                                 // actualize menu entry "Poke"
+#endif
+            }
+#else
+            fname = menu_start_load (z80_settings.path);
+
+            if (fname)
+            {
+                char            tmpbuf[2 * Z80_MAX_FILENAME_LEN + 2];           // +2: '/' and '\0'
+                int             len;
+
+                poke_file_active = 0;
+                z80_user_cancelled_load = 0;
+                snprintf (tmpbuf, 2 * Z80_MAX_FILENAME_LEN + 1, "%s/%s", z80_settings.path, fname);
+                z80_set_fname_load (tmpbuf);
+
+                len = strlen (fname_load_buf) - 4;
+
+                if (len >= 0 && fname_load_buf[len] == '.')
+                {
+                    struct stat st;
+
+                    strcpy (fname_poke_buf, fname_load_buf);
+                    strcpy (fname_poke_buf + len, ".pok");
+
+                    if (stat (fname_poke_buf, &st) == 0)
+                    {
+                        poke_file_active = 1;
+                    }
+                    else
+                    {
+                        fname_poke_buf[0] = '\0';
+                    }
+                }
+                else
+                {
+                    fname_poke_buf[0] = '\0';
+                }
+
+                rtc = tape_load (fname_load_buf, tape_load_format, base_addr, maxlen, load, load_data);
+                menu_redraw (poke_file_active);                                 // actualize menu entry "Poke"
+            }
+#endif
+        }
+    }
+    else if (fname_load_valid)
+    {
+        z80_user_cancelled_load = 0;
         rtc = tape_load (fname_load_buf, tape_load_format, base_addr, maxlen, load, load_data);
+
+        if (! rtc)
+        {
+            z80_close_fname_load ();                            // close tape fp, reset flags to force new LOAD by user
+        }
     }
 
     if (rtc)                                                    // successful
@@ -7031,19 +7214,19 @@ z80_set_fname_load (const char * fname)
         if (! strcasecmp (fname + len, ".tap"))
         {
             tape_load_format = TAPE_FORMAT_TAP;
-            strncpy (fname_load_buf, fname, 255);
+            strncpy (fname_load_buf, fname, Z80_MAX_FILENAME_LEN);
             fname_load_valid = 1;
         }
         else if (! strcasecmp (fname + len, ".tzx"))
         {
             tape_load_format = TAPE_FORMAT_TZX;
-            strncpy (fname_load_buf, fname, 255);
+            strncpy (fname_load_buf, fname, Z80_MAX_FILENAME_LEN);
             fname_load_valid = 1;
         }
         else if (! strcasecmp (fname + len, ".z80"))
         {
             tape_load_format = TAPE_FORMAT_Z80;
-            strncpy (fname_load_buf, fname, 255);
+            strncpy (fname_load_buf, fname, Z80_MAX_FILENAME_LEN);
             fname_load_snapshot_valid = 1;
         }
     }
@@ -7099,7 +7282,7 @@ z80_set_fname_save (const char * fname)
 
     if (strlen (fname) > 4)
     {
-        strncpy (fname_save_buf, fname, 255);
+        strncpy (fname_save_buf, fname, Z80_MAX_FILENAME_LEN);
         fname_save_valid = 1;
     }
 }
@@ -7211,7 +7394,7 @@ serial_input (void)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static INLINE void
-z80_idle_time ()
+z80_idle_time (void)
 {
 #ifdef QT_CORE_LIB                                              // QT: sleep 10 msec, set z80 interrupt flag every 20msec
     if (clockcycles >= CLOCKCYCLES_PER_10_MSEC)
@@ -7352,6 +7535,191 @@ z80_idle_time ()
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
+ * zx_rom_po_attr (void) - ROM hook: set attribute for pixel address given by HL
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+void
+zx_rom_po_attr (void)
+{
+    reg_H >>= 3;                                                    // get attribute address from
+    reg_H &= 0x03;                                                  // screen pixel address
+    reg_H |= 0x58;
+
+    uint16_t    attr_addr   = (reg_H << 8) | reg_L;
+    uint8_t     attr        = zx_ram_get_8(attr_addr);
+    uint8_t     attr_t      = zx_ram_get_8(ATTR_T);                 // get ATTR_T
+    uint8_t     mask_t      = zx_ram_get_8(MASK_T);                 // get MASK_T
+    uint8_t     p_flag      = zx_ram_get_8(P_FLAG);                 // get P_FLAG
+
+    attr ^= attr_t;
+    attr &= mask_t;
+    attr ^= attr_t;
+
+    if (p_flag & (1 << 6))
+    {
+        attr &= 0xC7;
+
+        if (! (attr & (1 << 2)))
+        {
+            attr ^= 0x38;
+        }
+    }
+
+    if (p_flag & (1 << 4))
+    {
+        attr &= 0xF8;
+
+        if (! (attr & (1 << 5)))
+        {
+            attr ^= 0x07;
+        }
+    }
+
+    zx_ram_set_8(attr_addr, attr);
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * zx_rom_plot_sub (void) - ROM hook: plot
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+void
+zx_rom_plot_sub (void)
+{
+    uint8_t x   = reg_C;
+    uint8_t y   = reg_B;
+
+    // printf ("PLOT %d,%d\n", x, y);
+
+    zx_ram_set_8 (COORDS_X, x);                                     // LD (COORDS),BC
+    zx_ram_set_8 (COORDS_Y, y);
+
+    y = 175 - y;                                                    // y = 0 is at bottom of screen
+
+    // 2 calculate address:
+    // 15   14  13  12  11  10  9   8   7   6   5   4   3   2   1   0
+    // 0    1   0   Y7  Y6  Y2  Y1  Y0  Y5  Y4  Y3  X7  X6  X5  X4  X3
+
+    uint16_t addr = ZX_SPECTRUM_DISPLAY_START_ADDRESS   |           // base address
+                    ((y & 0xC0) << 5)                   |           // Y7 Y6
+                    ((y & 0x07) << 8)                   |           // Y2 Y1 Y0
+                    ((y & 0x38) << 2)                   |           // Y5 Y4 Y3
+                    ((x & 0xF8) >> 3);                              // X7 X6 X5 X4
+
+    uint8_t v       = zx_ram_get_8(addr);
+    uint8_t p_flag  = zx_ram_get_8(P_FLAG);                         // get P_FLAG
+
+    if (p_flag & 0x01)                                              // Bit 0 set: OVER 1
+    {
+        if (! (p_flag & (1 << 2)))                                  // Bit 2 not set: not INVERSE 1
+        {
+            v ^= (1 << (7 - (x & 0x07)));                           // OVER 1: set Pixel if reset and vice versa
+        }
+    }
+    else
+    {
+        if (p_flag & (1 << 2))                                      // Bit 2 set: INVERSE 1
+        {
+            v &= ~(1 << (7 - (x & 0x07)));                          // INVERSE 1: set pixel to paper color
+        }
+        else
+        {
+            v |= (1 << (7 - (x & 0x07)));                           // NORMAL: set pixel to ink color
+        }
+    }
+
+    zx_ram_set_8(addr, v);
+
+    reg_H = addr >> 8;
+    reg_L = addr & 0xFF;
+    zx_rom_po_attr ();
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * zx_rom_draw_line_3 (void) - ROM hook: draw line
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+void
+zx_rom_draw_line_3 (void)
+{
+    int         x0  = zx_ram_get_8 (COORDS_X);                  // start x
+    int         y0  = zx_ram_get_8 (COORDS_Y);                  // start y
+    int         x   = reg_C;                                    // ABS x
+    int         y   = reg_B;                                    // ABS Y
+    int         dx  = (reg_E == 0xFF) ? -1 : 1;                 // SGN x: 0x01 = positive, 0xFF = negative
+    int         dy  = (reg_D == 0xFF) ? -1 : 1;                 // SGN y: 0x01 = positive, 0xFF = negative
+    int         ddx;
+    int         ddy;
+    int         ix;
+    int         iy;
+
+    // printf ("x0=%d y0=%d x=%d y=%d dx=%d dy=%d\n", x0, y0, x, y, dx, dy);
+
+    int         h;
+    int         n;
+    int         b;
+    int         i;
+    int         l;
+
+    if (x >= y)
+    {
+        if (x + y == 0)
+        {
+            return;
+        }
+
+        l = y;
+        b = x;
+        ddx = dx;
+        ddy = 0;
+    }
+    else
+    {
+        l = x;
+        b = y;
+        ddx = 0;
+        ddy = dy;
+    }
+
+    h = b;
+    i = b / 2;
+
+    for (n = b; n > 0; n--)
+    {
+        i += l;
+
+        if (i < h)
+        {
+            ix = ddx;
+            iy = ddy;
+        }
+        else
+        {
+            i -= h;
+            ix = dx;
+            iy = dy;
+        }
+
+        y0 += iy;
+
+        if (y0 < 0 || y0 > 175)
+        {
+            return;
+        }
+
+        x0 += ix;
+
+        if (x0 < 0 || x0 > 255)
+        {
+            return;
+        }
+
+        reg_C = x0;
+        reg_B = y0;
+        zx_rom_plot_sub ();
+    }
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
  * z80()
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
@@ -7427,13 +7795,28 @@ z80 (void)
                 }
             }
 
-            if (reg_PC == 0x0562)           // official tape loader address is 0x0556,
-            {                               // but some games call DI; EX AF,AF' on their own and jump to 0x055A or 0x562
-                tape_prepare_load (1);
-            }
-            else if (reg_PC == 0x4C2)
+            if (reg_PC < ZX_SPECTRUM_DISPLAY_START_ADDRESS &&
+                ((z80_romsize == 0x4000 && steccy_bankptr[0] == steccy_rombankptr[0]) ||
+                 (z80_romsize == 0x8000 && steccy_bankptr[0] == steccy_rombankptr[1])))                 // we are in 48K ROM
             {
-                tape_prepare_save ();
+                if (reg_PC == 0x0562)           // official tape loader address is 0x0556,
+                {                               // but some games call DI; EX AF,AF' on their own and jump to 0x055A or 0x562
+                    tape_prepare_load (1);
+                }
+                else if (reg_PC == 0x4C2)
+                {
+                    tape_prepare_save ();
+                }
+
+                if (z80_settings.rom_hooks)
+                {
+                    switch (reg_PC)
+                    {
+                        case 0x22E5:    zx_rom_plot_sub ();     reg_PC = 0x0C09; break; // PLOT_SUB (RET from PO_ATTR!)
+                        case 0x0BDB:    zx_rom_po_attr ();      reg_PC = 0x0C09; break; // PO_ATTR  (RET from PO_ATTR)
+                        case 0x24BA:    zx_rom_draw_line_3 ();  reg_PC = 0x24F6; break; // DRAW_LINE + 3 (RET from DRAW_LINE)
+                    }
+                }
             }
 
 #if defined QT_CORE_LIB
@@ -7444,13 +7827,13 @@ z80 (void)
 #elif defined FRAMEBUFFER || defined X11
             if (! z80_focus)
             {
-                menu (z80_settings.path);
+                menu (z80_settings.path, poke_file_active);
                 z80_focus = TRUE;
             }
 #elif defined STM32F4XX
             if (! z80_focus)
             {
-                menu ();
+                menu (poke_file_active);
 #ifdef SSD1963
                 zxscr_update_status ();
 #endif
@@ -7892,14 +8275,14 @@ load_ini_file (void)
                     if (! strcasecmp (buf, "PATH"))
                     {
 #ifndef STM32F4XX                                                                       // ignore path on STM32F4XX
-                        strncpy (z80_settings.path, p, MAX_FILENAME_LEN - 1);
-                        z80_settings.path[MAX_FILENAME_LEN - 1] = '\0';
+                        strncpy (z80_settings.path, p, Z80_MAX_FILENAME_LEN);
+                        z80_settings.path[Z80_MAX_FILENAME_LEN] = '\0';
 #endif
                     }
                     else if (! strcasecmp (buf, "ROM"))
                     {
-                        strncpy (z80_settings.romfile, p, MAX_FILENAME_LEN - 1);
-                        z80_settings.romfile[MAX_FILENAME_LEN - 1] = '\0';
+                        strncpy (z80_settings.romfile, p, Z80_MAX_FILENAME_LEN);
+                        z80_settings.romfile[Z80_MAX_FILENAME_LEN] = '\0';
                     }
                     else if (! strcasecmp (buf, "AUTOSTART"))
                     {
@@ -7914,8 +8297,8 @@ load_ini_file (void)
                     }
                     else if (! strcasecmp (buf, "AUTOLOAD"))
                     {
-                        strncpy (z80_settings.autoload, p, MAX_FILENAME_LEN - 1);
-                        z80_settings.autoload[MAX_FILENAME_LEN - 1] = '\0';
+                        strncpy (z80_settings.autoload, p, Z80_MAX_FILENAME_LEN);
+                        z80_settings.autoload[Z80_MAX_FILENAME_LEN] = '\0';
                     }
                     else if (! strcasecmp (buf, "KEYBOARD"))                // there can be more than one KEYBOARD line!
                     {

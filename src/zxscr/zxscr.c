@@ -89,7 +89,7 @@ static uint8_t rgbvalues[16][3] =
  * 0  1  0  y7 y6 y2 y1 y0 y5 y4 y3 x4 x3 x2 x1 x0
  *------------------------------------------------------------------------------------------------------------------------
  */
-#define ZOOM        2
+#define ZXSCR_ZOOM        2
 
 void
 zxscr_init_display (void)
@@ -137,26 +137,26 @@ zxscr_update_display (void)
 
         for (y = 0; y < ZX_SPECTRUM_BORDER_SIZE; y++)
         {
-            for (x = 0; x < ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + ZOOM * ZX_SPECTRUM_BORDER_SIZE; x++)
+            for (x = 0; x < ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + ZXSCR_ZOOM * ZX_SPECTRUM_BORDER_SIZE; x++)
             {
                 myw->image->setPixel(x, y, rgb);
             }
         }
 
-        for (y = ZX_SPECTRUM_BORDER_SIZE; y < ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + ZX_SPECTRUM_BORDER_SIZE; y++)
+        for (y = ZX_SPECTRUM_BORDER_SIZE; y < ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + ZX_SPECTRUM_BORDER_SIZE; y++)
         {
             for (x = 0; x < ZX_SPECTRUM_BORDER_SIZE; x++)
             {
                 myw->image->setPixel(x, y, rgb);
-                myw->image->setPixel(x + ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + ZX_SPECTRUM_BORDER_SIZE, y, rgb);
+                myw->image->setPixel(x + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + ZX_SPECTRUM_BORDER_SIZE, y, rgb);
             }
         }
 
-        for (y = ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + ZX_SPECTRUM_BORDER_SIZE;
-             y < ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + ZOOM * ZX_SPECTRUM_BORDER_SIZE;
+        for (y = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + ZX_SPECTRUM_BORDER_SIZE;
+             y < ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + ZXSCR_ZOOM * ZX_SPECTRUM_BORDER_SIZE;
              y++)
         {
-            for (x = 0; x < ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + ZOOM * ZX_SPECTRUM_BORDER_SIZE; x++)
+            for (x = 0; x < ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + ZXSCR_ZOOM * ZX_SPECTRUM_BORDER_SIZE; x++)
             {
                 myw->image->setPixel(x, y, rgb);
             }
@@ -235,17 +235,17 @@ zxscr_update_display (void)
             {
                 if (value & mask)
                 {
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZOOM * row,     rgbset);
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx) + 1,  ZX_SPECTRUM_BORDER_SIZE + ZOOM * row,     rgbset);
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZOOM * row + 1, rgbset);
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx) + 1 , ZX_SPECTRUM_BORDER_SIZE + ZOOM * row + 1, rgbset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row,     rgbset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx) + 1,  ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row,     rgbset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row + 1, rgbset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx) + 1 , ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row + 1, rgbset);
                 }
                 else
                 {
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZOOM * row,     rgbreset);
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx) + 1,  ZX_SPECTRUM_BORDER_SIZE + ZOOM * row,     rgbreset);
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZOOM * row + 1, rgbreset);
-                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZOOM * (col + idx) + 1 , ZX_SPECTRUM_BORDER_SIZE + ZOOM * row + 1, rgbreset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row,     rgbreset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx) + 1,  ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row,     rgbreset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx),      ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row + 1, rgbreset);
+                    myw->image->setPixel(ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * (col + idx) + 1 , ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row + 1, rgbreset);
                 }
 
                 mask >>= 1;
@@ -284,10 +284,9 @@ static uint16_t rgb565values[16] =
     0xFFFF,                                         // white
 };
 
+uint_fast8_t    zxscr_force_update = 1;
+
 #if TFT_WIDTH == 800
-#  define TOP_OFFSET                16
-#  define LEFT_OFFSET               8
-#  define ZOOM                      2
 
 /*------------------------------------------------------------------------------------------------------------------------
  * zxscr_update_display - update display
@@ -315,7 +314,6 @@ zxscr_update_display (void)
     uint8_t         attr;
     uint8_t         ink;
     uint8_t         paper;
-    static uint8_t  called;
 
     counter++;
 
@@ -325,7 +323,7 @@ zxscr_update_display (void)
         counter = 0;
     }
 
-    if (last_zx_border_color != zx_border_color)
+    if (zxscr_force_update || last_zx_border_color != zx_border_color)
     {
         uint16_t        x;
         uint16_t        y;
@@ -333,34 +331,34 @@ zxscr_update_display (void)
         uint16_t        h;
         uint_fast16_t   rgb565 = rgb565values[zx_border_color];
 
-        x = LEFT_OFFSET;
-        y = TOP_OFFSET;
-        w = ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZX_SPECTRUM_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET;
+        y = ZXSCR_TOP_OFFSET;
+        w = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZX_SPECTRUM_BORDER_SIZE;
         h = ZX_SPECTRUM_BORDER_SIZE;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                            // upper border
 
-        x = LEFT_OFFSET;
-        y = TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET;
+        y = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE;
         w = ZX_SPECTRUM_BORDER_SIZE;
-        h = ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+        h = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                            // left border
 
-        x = LEFT_OFFSET + ZX_SPECTRUM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS;
-        y = TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET + ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS;
+        y = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE;
         w = ZX_SPECTRUM_BORDER_SIZE;
-        h = ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+        h = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                            // right border
 
-        x = LEFT_OFFSET;
-        y = TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
-        w = ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZX_SPECTRUM_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET;
+        y = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+        w = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZX_SPECTRUM_BORDER_SIZE;
         h = ZX_SPECTRUM_BORDER_SIZE;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                            // lower border
 
         last_zx_border_color = zx_border_color;
     }
 
-    if (counter != 0 && ! video_ram_changed)                                                // no flash inverting and no video ram content changed
+    if (! zxscr_force_update && counter != 0 && ! video_ram_changed)                        // no flash inverting and no video ram content changed
     {
         return;
     }
@@ -371,8 +369,8 @@ zxscr_update_display (void)
     {
         row         = ((addr & 0x0700) >> 8) | ((addr & 0x00E0) >> 2) | ((addr & 0x1800) >> 5);
         attr_addr   = UINT16_T (ZX_SPECTRUM_ATTRIBUTES_START_ADDR + (((row >> 3) << 5)));
-        uint16_t y  = TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE + ZOOM * row;
-        uint16_t x  = LEFT_OFFSET + ZX_SPECTRUM_BORDER_SIZE;
+        uint16_t y  = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_BORDER_SIZE + ZXSCR_ZOOM * row;
+        uint16_t x  = ZXSCR_LEFT_OFFSET + ZX_SPECTRUM_BORDER_SIZE;
 
         for (col = 0; col < ZX_SPECTRUM_DISPLAY_COLUMNS; col += 8, addr++, attr_addr++)
         {
@@ -382,13 +380,13 @@ zxscr_update_display (void)
             value   = zx_ram_get_screen_8(addr);
             attr    = zx_ram_get_screen_8(attr_addr);
 
-            if (called &&                                                                   // ram initialized?
+            if (! zxscr_force_update &&                                                     // ram initialized?
                 value == shadow_display[addr - ZX_SPECTRUM_DISPLAY_START_ADDRESS] &&        // value not changed?
                 attr  == shadow_attr[attr_addr - ZX_SPECTRUM_ATTRIBUTES_START_ADDR])        // attr not changed?
             {
                 if (counter != 0 || ! (attr & FLASH_MASK))                                  // no flash inverting
                 {                                                                           // and no flash attribute
-                    x += 8 * ZOOM;
+                    x += 8 * ZXSCR_ZOOM;
                     continue;                                                               // skip update
                 }
             }
@@ -420,15 +418,15 @@ zxscr_update_display (void)
                 ink += 8;
             }
 
-            if (value == 0x00)                                                              // optimize: ZOOM * 8 pixels with paper color
+            if (value == 0x00)                                                              // optimize: ZXSCR_ZOOM * 8 pixels with paper color
             {
-                tft_fill_rectangle (x, y, x + (8 * ZOOM - 1), y + 1, rgb565values[paper]);
-                x += 8 * ZOOM;
+                tft_fill_rectangle (x, y, x + (8 * ZXSCR_ZOOM - 1), y + 1, rgb565values[paper]);
+                x += 8 * ZXSCR_ZOOM;
             }
-            else if (value == 0xFF)                                                         // optimize: ZOOM * 8 pixels with ink color
+            else if (value == 0xFF)                                                         // optimize: ZXSCR_ZOOM * 8 pixels with ink color
             {
-                tft_fill_rectangle (x, y, x + (8 * ZOOM - 1), y + 1, rgb565values[ink]);
-                x += 8 * ZOOM;
+                tft_fill_rectangle (x, y, x + (8 * ZXSCR_ZOOM - 1), y + 1, rgb565values[ink]);
+                x += 8 * ZXSCR_ZOOM;
             }
             else
             {
@@ -443,7 +441,7 @@ zxscr_update_display (void)
                         tft_fill_rectangle (x, y, x + 1, y + 1, rgb565values[paper]);
                     }
 
-                    x += ZOOM;
+                    x += ZXSCR_ZOOM;
                     mask >>= 1;
                 }
             }
@@ -451,7 +449,7 @@ zxscr_update_display (void)
     }
 
     memcpy (shadow_attr,  zx_ram_screen_addr(ZX_SPECTRUM_ATTRIBUTES_START_ADDR), 768);
-    called = 1;
+    zxscr_force_update = 0;
     video_ram_changed = 0;
 }
 
@@ -469,7 +467,7 @@ zxscr_update_status (void)
 
     if (wii_type != WII_TYPE_NONE)
     {
-        x = TFT_WIDTH - 14 * font_width() - 2;                                          // 7 characters to print at (-14)
+        x = TFT_WIDTH - 25 * font_width() - 2;                                          // 7 characters to print at (-28)
 
         if (wii_type == WII_TYPE_NUNCHUK)
         {
@@ -481,7 +479,29 @@ zxscr_update_status (void)
         }
     }
 
-    x = TFT_WIDTH - 4 * font_width() - 2;                                              // 4 characters to print at (-4)
+    x = TFT_WIDTH - 17 * font_width() - 2;                                              // 5 characters to print
+
+    if (z80_get_turbo_mode ())
+    {
+        draw_string ((unsigned char *) "Turbo", y, x, RED565, BLACK565);
+    }
+    else
+    {
+        draw_string ((unsigned char *) "     ", y, x, RED565, BLACK565);
+    }
+
+    x = TFT_WIDTH - 11 * font_width() - 2;                                              // 7 characters to print
+
+    if (z80_get_rom_hooks ())
+    {
+        draw_string ((unsigned char *) "Hooks", y, x, RED565, BLACK565);
+    }
+    else
+    {
+        draw_string ((unsigned char *) "     ", y, x, RED565, BLACK565);
+    }
+
+    x = TFT_WIDTH - 5 * font_width() - 2;                                              // 4 characters to print
 
     if (z80_romsize == 0x4000)
     {
@@ -494,9 +514,6 @@ zxscr_update_status (void)
 }
 
 #elif TFT_WIDTH == 320
-#  define TOP_OFFSET                0
-#  define LEFT_OFFSET               0
-#  define ZOOM                      1
 
 uint_fast8_t                        zxscr_display_cached = 0;
 
@@ -527,6 +544,11 @@ zxscr_update_display (void)
     uint8_t         ink;
     uint8_t         paper;
 
+    if (zxscr_force_update)
+    {
+        zxscr_display_cached = 0;
+    }
+
     counter++;
 
     if (counter == 16)                                                                      // change every 16/25 = 32/50 seconds bg and fg
@@ -543,34 +565,34 @@ zxscr_update_display (void)
         uint16_t        h;
         uint_fast16_t   rgb565 = rgb565values[zx_border_color];
 
-        x = LEFT_OFFSET;
-        y = TOP_OFFSET;
-        w = ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZOOM * ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET;
+        y = ZXSCR_TOP_OFFSET;
+        w = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZXSCR_ZOOM * ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
         h = ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                // upper border
 
-        x = LEFT_OFFSET;
-        y = TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET;
+        y = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE;
         w = ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
-        h = ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+        h = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                // left border
 
-        x = LEFT_OFFSET + ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS;
-        y = TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET + ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS;
+        y = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE;
         w = ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
-        h = ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+        h = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                // right border
 
-        x = LEFT_OFFSET;
-        y = TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
-        w = ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZOOM * ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
+        x = ZXSCR_LEFT_OFFSET;
+        y = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+        w = ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS + 2 * ZXSCR_ZOOM * ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
         h = ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE;
         tft_fill_rectangle (x, y, x + w - 1, y + h - 1, rgb565);                // lower border
 
         last_zx_border_color = zx_border_color;
     }
 
-    if (counter != 0 && ! video_ram_changed)                                    // no flash inverting and no video ram content changed
+    if (! zxscr_force_update && counter != 0 && ! video_ram_changed)            // no flash inverting and no video ram content changed
     {
         return;
     }
@@ -581,8 +603,8 @@ zxscr_update_display (void)
     {
         row         = ((addr & 0x0700) >> 8) | ((addr & 0x00E0) >> 2) | ((addr & 0x1800) >> 5);
         attr_addr   = UINT16_T (ZX_SPECTRUM_ATTRIBUTES_START_ADDR + (((row >> 3) << 5)));
-        uint16_t y  = TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZOOM * row;
-        uint16_t x  = LEFT_OFFSET + ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
+        uint16_t y  = ZXSCR_TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZXSCR_ZOOM * row;
+        uint16_t x  = ZXSCR_LEFT_OFFSET + ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE;
 
         for (col = 0; col < ZX_SPECTRUM_DISPLAY_COLUMNS; col += 8, addr++, attr_addr++)
         {
@@ -598,7 +620,7 @@ zxscr_update_display (void)
             {
                 if (counter != 0 || ! (attr & FLASH_MASK))                                  // no flash inverting
                 {                                                                           // and no flash attribute
-                    x += 8 * ZOOM;
+                    x += 8 * ZXSCR_ZOOM;
                     continue;                                                               // skip update
                 }
             }
@@ -630,7 +652,7 @@ zxscr_update_display (void)
                 ink += 8;
             }
 
-            tft_set_area (x, x + (ZOOM * 8 - 1), y, y);                                 // set area here: 8 Pixels following
+            tft_set_area (x, x + (ZXSCR_ZOOM * 8 - 1), y, y);                                 // set area here: 8 Pixels following
 
             for (idx = 0; idx < 8; idx++)
             {
@@ -643,7 +665,7 @@ zxscr_update_display (void)
                     tft_write_data (rgb565values[paper]);
                 }
 
-                x += ZOOM;
+                x += ZXSCR_ZOOM;
                 mask >>= 1;
             }
         }
@@ -651,6 +673,7 @@ zxscr_update_display (void)
 
     memcpy (shadow_attr,  zx_ram_screen_addr(ZX_SPECTRUM_ATTRIBUTES_START_ADDR), 768);
     zxscr_display_cached = 1;
+    zxscr_force_update = 0;
     video_ram_changed = 0;
 }
 
@@ -665,11 +688,11 @@ zxscr_update_status (void)
     uint_fast16_t           y;
 
     x = 0;
-    y = TOP_OFFSET + 2 * ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
+    y = ZXSCR_TOP_OFFSET + 2 * ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS;
 
     tft_fill_rectangle (x, y, TFT_WIDTH - 1, TFT_HEIGHT - 1, BLACK565);
 
-    y = TOP_OFFSET + 2 * ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + 2;
+    y = ZXSCR_TOP_OFFSET + 2 * ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS + 2;
 
     if (wii_type != WII_TYPE_NONE)
     {
@@ -683,6 +706,28 @@ zxscr_update_status (void)
         {
             draw_string ((unsigned char *) "Gamepad", y, x, RED565, BLACK565);
         }
+    }
+
+    x = TFT_WIDTH - 21 * font_width() - 2;                                              // 5 characters to print at (-21)
+
+    if (z80_get_turbo_mode ())
+    {
+        draw_string ((unsigned char *) "TURBO", y, x, RED565, BLACK565);
+    }
+    else
+    {
+        draw_string ((unsigned char *) "     ", y, x, RED565, BLACK565);
+    }
+
+    x = TFT_WIDTH - 14 * font_width() - 2;                                              // 7 characters to print at (-14)
+
+    if (z80_get_rom_hooks ())
+    {
+        draw_string ((unsigned char *) "FASTROM", y, x, RED565, BLACK565);
+    }
+    else
+    {
+        draw_string ((unsigned char *) "       ", y, x, RED565, BLACK565);
     }
 
     x = TFT_WIDTH - 4 * font_width() - 2;                                              // 4 characters to print

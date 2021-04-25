@@ -3,7 +3,7 @@
  *-------------------------------------------------------------------------------------------------------------------------------------------
  * MIT License
  *
- * Copyright (c) 2020 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2020-2021 Frank Meyer - frank(at)fli4l.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@
 #define LXX11_H
 extern void                 x11_event (void);
 extern void                 fill_rectangle (uint16_t, uint16_t, uint16_t, uint16_t, uint32_t);
+extern void                 draw_rectangle (uint16_t, uint16_t, uint16_t, uint16_t, uint32_t);
 extern void                 x11_flush (void);
 extern int                  x11_init (char *);
 extern void                 x11_deinit (void);

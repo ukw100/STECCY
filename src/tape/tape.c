@@ -366,7 +366,7 @@ tzx_print_alphanumeric_data_header_info (uint8_t * addr)
  *------------------------------------------------------------------------------------------------------------------------
  */
 static void
-tzx_print_data_info ()
+tzx_print_data_info (void)
 {
     debug_printf ("Block type: Data\n");
 }

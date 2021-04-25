@@ -2078,7 +2078,7 @@ ssd1963_set_flags (uint_fast8_t new_flags)
 #define VSYNC_FPS             23
 
 void
-ssd1963_init ()
+ssd1963_init (void)
 {
     uint_fast8_t    lcd_mode_a;
     uint_fast8_t    lcd_mode_b;

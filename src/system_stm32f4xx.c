@@ -52,17 +52,17 @@
   *-----------------------------------------------------------------------------
   *        AHB Prescaler                          | 1
   *-----------------------------------------------------------------------------
-  *        APB1 Prescaler                         | 4 (fm: 2 on Nucleo)
+  *        APB1 Prescaler                         | 4
   *-----------------------------------------------------------------------------
-  *        APB2 Prescaler                         | 2 (fm: 1 on Nucleo)
+  *        APB2 Prescaler                         | 2
   *-----------------------------------------------------------------------------
   *        HSE Frequency(Hz)                      | 8000000 (fm: see HSE_VALUE)
   *-----------------------------------------------------------------------------
-  *        PLL_M                                  | 8 (fm: orig 25, new: 8)
+  *        PLL_M                                  | 8
   *-----------------------------------------------------------------------------
-  *        PLL_N                                  | 336 (fm: 400 on STM32F411)
+  *        PLL_N                                  | 336
   *-----------------------------------------------------------------------------
-  *        PLL_P                                  | 2 (fm: 4 on Nucleo STM32F4xx)
+  *        PLL_P                                  | 2
   *-----------------------------------------------------------------------------
   *        PLL_Q                                  | 7
   *-----------------------------------------------------------------------------
@@ -156,8 +156,8 @@
 /* SYSCLK = PLL_VCO / PLL_P */
 /* USB OTG FS, SDIO and RNG Clock =  PLL_VCO / PLLQ */
 
-/*----------------------------------------------------------------------------
- * STM32F401RE Nucleo Board with 8 MHz crystal (84 MHz)
+/*--------------------------------------------------------------------------------------------------------
+ * STM32F401RE Nucleo Board with 8 MHz crystal (84 MHz):
  *
  * Input frequency      8MHz
  * PLL M                4
@@ -166,9 +166,26 @@
  * AHB prescaler        1
  * APB1 prescaler       2
  * APB2 prescaler       1
- *----------------------------------------------------------------------------
+ *
+ * SYSCLK = ((HSE_VALUE / PLL_M) * PLL_N) / PLL_N = ((8000000 / 4) * 84) / 2 = 84000000
+ *--------------------------------------------------------------------------------------------------------
+ * STM32F401CC WeAct Black Pill with 25 MHz crystal (84 MHz):
+ * STM32F401CE WeAct Black Pill with 25 MHz crystal (84 MHz):
+ *
+ * Input frequency      25MHz
+ * PLL M                25
+ * PLL N                336
+ * PLL P                4
+ * AHB prescaler        1
+ * APB1 prescaler       2
+ * APB2 prescaler       1
+ *
+ * SYSCLK = ((HSE_VALUE / PLL_M) * PLL_N) / PLL_N = ((25000000 / 25) * 336) / 4 = 84000000
+ *--------------------------------------------------------------------------------------------------------
  */
-#if defined (STM32F401RE)
+#if defined (STM32F401)
+
+#if HSE_VALUE == 8000000                                // input frequency 8 MHz
 #define HCLK            84                              // 84 MHz
 #define PLL_M           4
 #define PLL_N           84
@@ -177,7 +194,20 @@
 #define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV2             // 42 MHz
 #define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV1             // 84 MHz
 
-/*----------------------------------------------------------------------------
+#elif HSE_VALUE == 25000000                             // input frequency 25 MHz
+#define HCLK            84                              // 84 MHz
+#define PLL_M           25
+#define PLL_N           336
+#define PLL_P           4
+#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1              // 84 MHz
+#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV2             // 42 MHz
+#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV1             // 84 MHz
+
+#else
+#error STM32F401: invalid HSE_VALUE
+#endif
+
+/*--------------------------------------------------------------------------------------------------------
  * STM32F411RE Nucleo Board with 8 MHz crystal (100 MHz)
  *
  * Input frequency      8MHz
@@ -187,18 +217,47 @@
  * AHB prescaler        1
  * APB1 prescaler       2
  * APB2 prescaler       1
- *----------------------------------------------------------------------------
+ *
+ * SYSCLK = ((HSE_VALUE / PLL_M) * PLL_N) / PLL_N = ((8000000 / 4) * 100) / 2 = 100000000
+ *--------------------------------------------------------------------------------------------------------
+ * STM32F411CE WeAct Black Pill with 25 MHz crystal (100 MHz):
+ *
+ * Input frequency      25MHz
+ * PLL M                25
+ * PLL N                200
+ * PLL P                2
+ * AHB prescaler        1
+ * APB1 prescaler       2
+ * APB2 prescaler       1
+ *
+ * SYSCLK = ((HSE_VALUE / PLL_M) * PLL_N) / PLL_N = ((25000000 / 25) * 200) / 2 = 100000000
+ *--------------------------------------------------------------------------------------------------------
  */
-#elif defined (STM32F411RE)                         // STM32F411RE Nucleo Board with 8 MHz crystal (100 MHz)
-#define HCLK            100                         // 100 MHz
+#elif defined (STM32F411)
+
+#if HSE_VALUE == 8000000                                // input frequency 8 MHz
+#define HCLK            100                             // 100 MHz
 #define PLL_M           4
 #define PLL_N           100
 #define PLL_P           2
-#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1          // 100 MHz
-#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV2         //  50 MHz
-#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV1         // 100 MHz
+#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1              // 100 MHz
+#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV2             //  50 MHz
+#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV1             // 100 MHz
 
-/*----------------------------------------------------------------------------
+#elif HSE_VALUE == 25000000                             // input frequency 25 MHz
+#define HCLK            100                             // 100 MHz
+#define PLL_M           25
+#define PLL_N           200
+#define PLL_P           2
+#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1              // 100 MHz
+#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV2             //  50 MHz
+#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV1             // 100 MHz
+
+#else
+#error STM32F411: invalid HSE_VALUE
+#endif
+
+/*--------------------------------------------------------------------------------------------------------
  * STM32F446RE Nucleo Board with 8 MHz crystal (180 MHz)
  *
  * Input frequency      8MHz
@@ -208,39 +267,28 @@
  * AHB prescaler        1
  * APB1 prescaler       4
  * APB2 prescaler       2
- *----------------------------------------------------------------------------
+ *
+ * SYSCLK = ((HSE_VALUE / PLL_M) * PLL_N) / PLL_N = ((8000000 / 4) * 180) / 2 = 180000000
+ *--------------------------------------------------------------------------------------------------------
  */
-#elif defined (STM32F446RE)                         // STM32F446RE Nucleo Board with 8 MHz crystal (180 MHz)
-#define HCLK            180                         // 180 MHz
+#elif defined (STM32F446)
+
+#if HSE_VALUE == 8000000                                // input frequency 8 MHz
+
+#define HCLK            180                             // 180 MHz
 #define PLL_M           4
 #define PLL_N           180
 #define PLL_P           2
-#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1          // 180 MHz
-#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV4         //  45 MHz
-#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV2         //  90 MHz
+#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1              // 180 MHz
+#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV4             //  45 MHz
+#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV2             //  90 MHz
 
-/*----------------------------------------------------------------------------
+#else
+#error STM32F446: invalid HSE_VALUE
+#endif
+
+/*--------------------------------------------------------------------------------------------------------
  * STM32F407VG Discovery Board with 8 MHz crystal (168 MHz)
- *
- * Input frequency      8MHz
- * PLL M                4
- * PLL N                168
- * PLL P                2
- * AHB prescaler        1
- * APB1 prescaler       4
- * APB2 prescaler       2
- *----------------------------------------------------------------------------
- */
-#elif defined (STM32F407VG)                         // STM32F4 Discovery Board with 8 MHz crystal (168 MHz)
-#define HCLK            168                         // 168 MHz
-#define PLL_M           4
-#define PLL_N           168
-#define PLL_P           2
-#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1          // 168 MHz
-#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV4         //  42 MHz
-#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV2         //  84 MHz
-
-/*----------------------------------------------------------------------------
  * STM32F407VE Black Board with 8 MHz crystal (168 MHz)
  *
  * Input frequency      8MHz
@@ -250,16 +298,25 @@
  * AHB prescaler        1
  * APB1 prescaler       4
  * APB2 prescaler       2
- *----------------------------------------------------------------------------
+ *
+ * SYSCLK = ((HSE_VALUE / PLL_M) * PLL_N) / PLL_N = ((8000000 / 4) * 168) / 2 = 168000000
+ *--------------------------------------------------------------------------------------------------------
  */
-#elif defined (STM32F407VE)                         // STM32F4 Black Board with 8 MHz crystal (168 MHz)
-#define HCLK            168                         // 168 MHz
+#elif defined (STM32F407)
+
+#if HSE_VALUE == 8000000                                // input frequency 8 MHz
+
+#define HCLK            168                             // 168 MHz
 #define PLL_M           4
 #define PLL_N           168
 #define PLL_P           2
-#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1          // 168 MHz
-#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV4         //  42 MHz
-#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV2         //  84 MHz
+#define AHB_PRESCALER   RCC_CFGR_HPRE_DIV1              // 168 MHz
+#define APB1_PRESCALER  RCC_CFGR_PPRE1_DIV4             //  42 MHz
+#define APB2_PRESCALER  RCC_CFGR_PPRE2_DIV2             //  84 MHz
+
+#else
+#error STM32F407: invalid HSE_VALUE
+#endif
 
 #else
 #error unknown STM32
@@ -267,7 +324,7 @@
 
 #define PLL_Q      7                                // not used yet (no USB)
 
-/*--------------------------------------------------------------------------------
+/*------------------------------------------------------------------------------------------------------------
  * STM32Fxx wait states
  *
  *       2.7V - 3.6V         2.4V - 2.7V     2.1V - 2.4V     1.8V - 2.1V     WS
@@ -282,7 +339,7 @@
  * HCLK                                     176 ... 180     160 ... 168     8 WS
  *
  * Here we use the values at 3.3V
- *---------------------------------------------------------------------------------
+ *-------------------------------------------------------------------------------------------------------------
  */
 #if   HCLK <= 30
 #define WAIT_STATES     FLASH_ACR_LATENCY_0WS
@@ -516,32 +573,6 @@ static void SetSysClock(void)
         RCC->CFGR |= AHB_PRESCALER;
         RCC->CFGR |= APB2_PRESCALER;
         RCC->CFGR |= APB1_PRESCALER;
-
-#if 0 // fm: see above
-#if defined (STM32F401RE)                           // STM32F401/STM32F411 Nucleo Board with 8MHz crystal
-        RCC->CFGR &= ~(RCC_CFGR_HPRE);              // Set HCLK prescaler            AHB1 to DIV1, alternatively: RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
-        RCC->CFGR &= ~(RCC_CFGR_PPRE2);             // SET APB2 High speed prescaler APB2 to DIV1, alternatively: RCC->CFGR |= R0DIV1;
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;           // Set APB1 Low speed prescaler  APB1 to DIV2
-#elif defined (STM32F401RE) || defined (STM32F411RE)  // STM32F401/STM32F411 Nucleo Board with 8MHz crystal
-        RCC->CFGR &= ~(RCC_CFGR_HPRE);              // Set HCLK prescaler            AHB1 to DIV1, alternatively: RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
-        RCC->CFGR &= ~(RCC_CFGR_PPRE2);             // SET APB2 High speed prescaler APB2 to DIV1, alternatively: RCC->CFGR |= R0DIV1;
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;           // Set APB1 Low speed prescaler  APB1 to DIV2
-#elif defined (STM32F401RE) || defined (STM32F411RE)  // STM32F401/STM32F411 Nucleo Board with 8MHz crystal
-        RCC->CFGR &= ~(RCC_CFGR_HPRE);              // Set HCLK prescaler            AHB1 to DIV1, alternatively: RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
-        RCC->CFGR &= ~(RCC_CFGR_PPRE2);             // SET APB2 High speed prescaler APB2 to DIV1, alternatively: RCC->CFGR |= R0DIV1;
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;           // Set APB1 Low speed prescaler  APB1 to DIV2
-#elif defined (STM32F407VG)                         // STM32F4 Discovery Board
-        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;            // Set HCLK prescaler            AHB1 to DIV1
-        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;           // SET APB2 High speed prescaler APB2 to DIV2
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;           // Set APB1 Low speed prescaler  APB1 to DIV4
-#elif defined (STM32F407VE)                         // STM32F4 Black Board
-        RCC->CFGR |= RCC_CFGR_HPRE_DIV1;            // Set HCLK prescaler            AHB1 to DIV1
-        RCC->CFGR |= RCC_CFGR_PPRE2_DIV2;           // SET APB2 High speed prescaler APB2 to DIV2
-        RCC->CFGR |= RCC_CFGR_PPRE1_DIV4;           // Set APB1 Low speed prescaler  APB1 to DIV4
-#else
-        #error unknown STM32
-#endif
-#endif // 0
 
         RCC->CR &= ~(RCC_CR_PLLON);             // Disable main PLL
 

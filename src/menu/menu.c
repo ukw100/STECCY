@@ -34,64 +34,99 @@
 #include "font.h"
 #include "fs-stdio.h"
 #include "z80.h"
+#include "zxscr.h"
+#include "zxram.h"
 #include "zxio.h"
+#include "menu.h"
 
 #define ENTRY_TYPE_NONE         0
 #define ENTRY_TYPE_ALERT        1
+#define ENTRY_TYPE_DISABLED     2
 
 #define MENU_ENTRY_JOYSTICK     0
 #define MENU_ENTRY_RESET        1
 #define MENU_ENTRY_ROM          2
-#define MENU_ENTRY_LOAD         3
+#define MENU_ENTRY_POKE         3
 #define MENU_ENTRY_SAVE         4
 #define MENU_ENTRY_SNAPSHOT     5
 #define MENU_ENTRY_AUTOSTART    6
 #define N_MENUS                 7
 
-#define MAXENTRYLEN             20                                                      // max number of characters per entry
-#define MAXENTRYNAMELEN         "20"                                                    // should be MAXENTRYLEN as string
+#define MAX_MAIN_ENTRY_LEN      16                                                      // max number of characters per main entry
+#define MAX_SUB_ENTRIES         128                                                     // max number of entries in list
+#define MENU_MAX_FILENAME_LEN   Z80_MAX_FILENAME_LEN                                    // only 8.3 possible with fatfs
+#define MAX_FNAME_INPUT_LEN     8
 
-#define MAXFILES                64                                                      // max number of files in list
 
 #if TFT_WIDTH == 320
-#define MENU_START_Y_OFFSET     0                                                       // y position of first menu entry
+
+#define MAIN_MENU_HEIGHT        (N_MENUS * MENU_STEP_Y)
+#define MAX_SUBENTRY_LEN        29                                                      // max number of characters per sub entry
+
+#define MAIN_MENU_START_X       80                                                      // rectangle window for main menu
+#define MAIN_MENU_START_Y       ((TFT_HEIGHT - MAIN_MENU_HEIGHT) / 2)
+#define MAIN_MENU_END_X         (TFT_WIDTH - MAIN_MENU_START_X - 1)
+#define MAIN_MENU_END_Y         (MAIN_MENU_START_Y + MAIN_MENU_HEIGHT - 1)
+
+#define SUB_MENU_START_X        (ZXSCR_LEFT_OFFSET + ZX_SPECTRUM_LEFT_RIGHT_BORDER_SIZE)    // rectangle window for sub menu
+#define SUB_MENU_START_Y        (ZXSCR_TOP_OFFSET + ZX_SPECTRUM_TOP_BOTTOM_BORDER_SIZE)
+#define SUB_MENU_END_X          (SUB_MENU_START_X + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS)
+#define SUB_MENU_END_Y          (SUB_MENU_START_Y + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS)
+#define SUB_MENU_X_OFFSET       4                                                       // x position of first menu entry col
+
+#define MENU_START_Y_OFFSET     4                                                       // y position of first menu entry
 #define MENU_STEP_Y             16                                                      // y step for next line in menu
 #define MENU_LOAD_STEP_Y        16                                                      // y step for next line in load menu
-#define MENU_SAVE_STEP_Y        16                                                      // y step for next line in save menu
-#define MENU_HEIGHT             (N_MENUS * MENU_STEP_Y)
-#define MENU_START_X            80                                                      // rectangle window for menu
-#define MENU_START_Y            ((TFT_HEIGHT - MENU_HEIGHT) / 2)
-#define MENU_END_X              (TFT_WIDTH - MENU_START_X - 1)
-#define MENU_END_Y              (MENU_START_Y + MENU_HEIGHT - 1)
-#define MENU_LOAD_ENTRIES       N_MENUS                                                 // max number of visible file entries in list
-#else
-#define MENU_START_X            600                                                     // rectangle window for menu
-#define MENU_START_Y            0
-#define MENU_END_X              (TFT_WIDTH - 1)
-#define MENU_END_Y              (TFT_HEIGHT - 1)
-#define MENU_LOAD_ENTRIES       20                                                      // max number of visible file entries in list
-#define MENU_START_Y_OFFSET     32                                                      // y position of first menu entry
+
+#define SUB_MENU_ENTRIES        12                                                      // max number of visible entries in list
+
+#else // TFT_WIDTH == 800
+
+#define MAX_SUBENTRY_LEN        59                                                      // max number of characters per sub entry
+
+#define MAIN_MENU_START_X       600                                                     // rectangle window for menu
+#define MAIN_MENU_START_Y       12
+#define MAIN_MENU_END_X         (TFT_WIDTH - 1)                                         // MAIN_MENU_END_Y not needed here
+
+#define SUB_MENU_START_X        (ZXSCR_LEFT_OFFSET + ZX_SPECTRUM_BORDER_SIZE)           // rectangle window for sub menu
+#define SUB_MENU_START_Y        (ZXSCR_TOP_OFFSET  + ZX_SPECTRUM_BORDER_SIZE)
+#define SUB_MENU_END_X          (SUB_MENU_START_X + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_COLUMNS)
+#define SUB_MENU_END_Y          (SUB_MENU_START_Y + ZXSCR_ZOOM * ZX_SPECTRUM_DISPLAY_ROWS)
+#define SUB_MENU_X_OFFSET       16                                                      // x position of first menu entry col
+
+#define SUB_MENU_ENTRIES        22                                                      // max number of visible entries in list
+#define MENU_START_Y_OFFSET     16                                                      // y position of first menu entry
 #define MENU_STEP_Y             32                                                      // y step for next line in menu
-#define MENU_LOAD_STEP_Y        20                                                      // y step for next line in load menu
-#define MENU_SAVE_STEP_Y        20                                                      // y step for next line in save menu
+#define MENU_LOAD_STEP_Y        16                                                      // y step for next line in load menu
 #endif
 
-#define MAX_FILENAMESIZE        16
+static const char *             autostart_entries[2] =
+{
+        "Autostart: No",
+        "Autostart: Yes"
+};
 
-static char *                   autostart_entries[2] = { "Autostart: No", "Autostart: Yes" };
-static char                     files[MAXFILES][MAX_FILENAMESIZE];
-static uint_fast8_t             nfiles = 0;
+typedef union
+{
+    char                        files[MAX_SUB_ENTRIES][MENU_MAX_FILENAME_LEN + 1];
+    long                        positions[MAX_SUB_ENTRIES];
+} SUBENTRIES;
+
+static SUBENTRIES               subentries;
+static uint_fast8_t             n_subentries = 0;
+static uint_fast8_t             menu_stop_active = 0;
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * draw_menu_entry () - draw menu entry
+ * draw_main_menu_entry () - draw menu entry
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-draw_menu_entry (uint_fast8_t menuidx, const char * str, uint_fast8_t activeidx, uint_fast8_t entry_type, uint8_t step_y)
+draw_main_menu_entry (uint_fast8_t menuidx, const char * str, uint_fast8_t activeidx, uint_fast8_t entry_type, uint8_t step_y)
 {
-    static char             buf[MAXENTRYLEN + 1];
-    uint_fast16_t           fcolor565;
-    uint_fast16_t           bcolor565;
+    char            buf[MAX_MAIN_ENTRY_LEN + 1];
+    uint_fast16_t   fcolor565;
+    uint_fast16_t   bcolor565;
+    uint32_t        i;
 
     if (activeidx == menuidx)
     {
@@ -101,35 +136,172 @@ draw_menu_entry (uint_fast8_t menuidx, const char * str, uint_fast8_t activeidx,
     {
         fcolor565 = YELLOW565;
     }
+    else if (entry_type == ENTRY_TYPE_DISABLED)
+    {
+        fcolor565 = GRAY565;
+    }
     else
     {
         fcolor565 = WHITE565;
     }
 
     bcolor565 = BLACK565;
-    snprintf (buf, MAXENTRYLEN + 1, "%-" MAXENTRYNAMELEN "s", str);
-    draw_string ((unsigned char *) buf, MENU_START_Y + MENU_START_Y_OFFSET + menuidx * step_y, MENU_START_X, fcolor565, bcolor565);
+
+    for (i = 0; i < MAX_MAIN_ENTRY_LEN; i++)
+    {
+        if (str[i])
+        {
+            buf[i] = str[i];
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    while (i < MAX_MAIN_ENTRY_LEN)
+    {
+        buf[i++] = ' ';
+    }
+    buf[i] = '\0';
+
+    draw_string ((unsigned char *) buf, MAIN_MENU_START_Y + MENU_START_Y_OFFSET + menuidx * step_y, MAIN_MENU_START_X, fcolor565, bcolor565);
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * draw_menu_load () - list files for selection
+ * draw_sub_menu_entry () - draw sub menu entry
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-draw_menu_load (uint_fast8_t offsetidx, uint_fast8_t activeidx)
+draw_sub_menu_entry (uint_fast8_t idx, const char * str, uint_fast8_t activeidx, uint_fast8_t entry_type, uint8_t step_y)
+{
+    static char     buf[MAX_SUBENTRY_LEN + 1];
+    uint_fast16_t   fcolor565;
+    uint_fast16_t   bcolor565;
+    uint32_t        i;
+
+    if (activeidx == idx)
+    {
+        fcolor565 = RED565;
+    }
+    else if (entry_type == ENTRY_TYPE_ALERT)
+    {
+        fcolor565 = YELLOW565;
+    }
+    else if (entry_type == ENTRY_TYPE_DISABLED)
+    {
+        fcolor565 = GRAY565;
+    }
+    else
+    {
+        fcolor565 = WHITE565;
+    }
+
+    bcolor565 = BLACK565;
+
+    for (i = 0; i < MAX_SUBENTRY_LEN; i++)
+    {
+        if (str[i])
+        {
+            buf[i] = str[i];
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    while (i < MAX_SUBENTRY_LEN)
+    {
+        buf[i++] = ' ';
+    }
+    buf[i] = '\0';
+
+    draw_string ((unsigned char *) buf, SUB_MENU_START_Y + MENU_START_Y_OFFSET + idx * step_y, SUB_MENU_START_X + SUB_MENU_X_OFFSET, fcolor565, bcolor565);
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * draw_menu_poke_entry () - draw menu poke entry
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static void
+draw_menu_poke_entry (FILE * fp, uint_fast8_t idx, long pos, uint_fast8_t actidx, uint_fast8_t entry_type, uint8_t step_y)
+{
+    static char     buf[MAX_SUBENTRY_LEN + 1];
+    uint_fast16_t   fcolor565;
+    uint_fast16_t   bcolor565;
+    int             ch;
+    uint32_t        i;
+
+    if (actidx == idx)
+    {
+        fcolor565 = RED565;
+    }
+    else if (entry_type == ENTRY_TYPE_ALERT)
+    {
+        fcolor565 = YELLOW565;
+    }
+    else if (entry_type == ENTRY_TYPE_DISABLED)
+    {
+        fcolor565 = GRAY565;
+    }
+    else
+    {
+        fcolor565 = WHITE565;
+    }
+
+    bcolor565 = BLACK565;
+
+    fseek (fp, pos, SEEK_SET);
+
+    for (i = 0; i < MAX_SUBENTRY_LEN; i++)
+    {
+        ch = getc (fp);
+
+        if (ch == '\r' || ch == '\n' || ch == EOF)
+        {
+            break;
+        }
+        buf[i] = ch;
+    }
+
+    while (i < MAX_SUBENTRY_LEN)
+    {
+        buf[i++] = ' ';
+    }
+    buf[i] = '\0';
+
+    draw_string ((unsigned char *) buf, SUB_MENU_START_Y + MENU_START_Y_OFFSET + idx * step_y, SUB_MENU_START_X + SUB_MENU_X_OFFSET, fcolor565, bcolor565);
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * draw_sub_menu () - list subentries for selection
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static void
+draw_sub_menu (FILE * poke_fp, uint_fast8_t offsetidx, uint_fast8_t activeidx)
 {
     uint_fast8_t    widx;
     uint_fast8_t    idx;
 
-    for (idx = offsetidx, widx = 0; idx < nfiles && widx < MENU_LOAD_ENTRIES; idx++, widx++)
+    if (poke_fp)
     {
-        draw_menu_entry (widx, files[idx], activeidx - offsetidx, ENTRY_TYPE_NONE, MENU_LOAD_STEP_Y);
+        for (idx = offsetidx, widx = 0; idx < n_subentries && widx < SUB_MENU_ENTRIES; idx++, widx++)
+        {
+            draw_menu_poke_entry (poke_fp, widx, subentries.positions[idx], activeidx - offsetidx, ENTRY_TYPE_NONE, MENU_LOAD_STEP_Y);
+        }
     }
-    return;
+    else
+    {
+        for (idx = offsetidx, widx = 0; idx < n_subentries && widx < SUB_MENU_ENTRIES; idx++, widx++)
+        {
+            draw_sub_menu_entry (widx, subentries.files[idx], activeidx - offsetidx, ENTRY_TYPE_NONE, MENU_LOAD_STEP_Y);
+        }
+    }
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * files_cmp () - compare filenames to sort
+ * filescmp () - compare filenames to sort
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static int
@@ -145,7 +317,7 @@ static uint_fast16_t    last_joy_scancode = SCANCODE_NONE;
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static uint_fast16_t
-menu_get_scancode ()
+menu_get_scancode (void)
 {
     uint_fast16_t scancode;
 
@@ -208,7 +380,7 @@ menu_get_scancode ()
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-menu_wait_until_joystick_released ()
+menu_wait_until_joystick_released (void)
 {
     if (joystick_is_online)
     {
@@ -232,6 +404,150 @@ menu_wait_until_joystick_released ()
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_draw_rectangle () - draw rectangle for sub menu
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static void
+menu_draw_rectangle (void)
+{
+    tft_fill_rectangle (SUB_MENU_START_X, SUB_MENU_START_Y, SUB_MENU_END_X, SUB_MENU_END_Y, BLACK565);  // erase sub menu
+    tft_draw_rectangle (SUB_MENU_START_X, SUB_MENU_START_Y, SUB_MENU_END_X, SUB_MENU_END_Y, RED565);    // draw rectangle
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_erase_rectangle () - erase rectangle for sub menu
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static void
+menu_erase_rectangle (void)
+{
+    zxscr_force_update = 1;
+    zxscr_update_display ();
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_handle_sub_menu () - handle user input in sub menu
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static int
+menu_handle_sub_menu (FILE * poke_fp)
+{
+    uint_fast8_t    do_break    = 0;
+    uint_fast8_t    activeitem  = 0;
+    uint_fast8_t    offsetidx   = 0;
+    uint_fast16_t   scancode;
+    int             entry_idx   = -1;
+
+    draw_sub_menu (poke_fp, 0, 0);
+
+    while (! do_break && (scancode = menu_get_scancode()) != SCANCODE_ESC)
+    {
+        switch (scancode)
+        {
+            case SCANCODE_D_ARROW:
+            {
+                if (activeitem < n_subentries - 1)
+                {
+                    activeitem++;
+
+                    if (activeitem - offsetidx > SUB_MENU_ENTRIES - 1)
+                    {
+                        offsetidx = activeitem - SUB_MENU_ENTRIES + 1;
+                    }
+
+                    draw_sub_menu (poke_fp, offsetidx, activeitem);
+                }
+                break;
+            }
+            case SCANCODE_R_ARROW:
+            case SCANCODE_PG_DN:
+            {
+                uint_fast8_t newitem = activeitem + SUB_MENU_ENTRIES;
+
+                if (newitem >= n_subentries)
+                {
+                    newitem = n_subentries - 1;
+                }
+
+                if (newitem > activeitem)
+                {
+                    offsetidx += newitem - activeitem;
+
+                    if (offsetidx > n_subentries - SUB_MENU_ENTRIES)
+                    {
+                        offsetidx = n_subentries - SUB_MENU_ENTRIES;
+                    }
+
+                    activeitem = newitem;
+                    draw_sub_menu (poke_fp, offsetidx, activeitem);
+                }
+                break;
+            }
+            case SCANCODE_U_ARROW:
+            {
+                if (activeitem > 0)
+                {
+                    activeitem--;
+
+                    if (activeitem < offsetidx)
+                    {
+                        offsetidx = activeitem;
+                    }
+
+                    draw_sub_menu (poke_fp, offsetidx, activeitem);
+                }
+                break;
+            }
+            case SCANCODE_L_ARROW:
+            case SCANCODE_PG_UP:
+            {
+                uint_fast8_t newitem;
+
+                if (activeitem > SUB_MENU_ENTRIES)
+                {
+                    newitem = activeitem - SUB_MENU_ENTRIES;
+                }
+                else
+                {
+                    newitem = 0;
+                }
+
+                if (newitem != activeitem)
+                {
+                    activeitem = newitem;
+
+                    if (offsetidx > SUB_MENU_ENTRIES)
+                    {
+                        offsetidx -= SUB_MENU_ENTRIES;
+                    }
+                    else
+                    {
+                        offsetidx = 0;
+                    }
+
+                    draw_sub_menu (poke_fp, offsetidx, activeitem);
+                }
+                break;
+            }
+            case SCANCODE_ENTER:
+            case SCANCODE_SPACE:
+            {
+                // printf ("activeitem = %d\r\n", activeitem);
+                entry_idx = activeitem;
+                do_break = 1;
+                break;
+            }
+        }
+
+        if (z80_settings.keyboard & KEYBOARD_USB)
+        {
+            usb_hid_host_process (TRUE);
+        }
+    }
+    return entry_idx;
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
  * menu_load () - handle menu for file selection
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
@@ -242,15 +558,12 @@ menu_load (uint_fast8_t romfiles)
     FRESULT         res;
     DIR             dir;
     uint8_t         len;
-    uint_fast8_t    do_break    = 0;
-    uint_fast8_t    activeitem  = 0;
-    uint_fast16_t   scancode;
+    int             entry_idx;
     char *          fname       = (char *) 0;
-    uint_fast8_t    offsetidx   = 0;
 
-    tft_fill_rectangle (MENU_START_X, MENU_START_Y, MENU_END_X, MENU_END_Y, BLACK565);                      // erase menu
+    menu_draw_rectangle ();
 
-    nfiles = 0;
+    n_subentries = 0;
     res = f_opendir (&dir, "/");
 
     if (res == FR_OK)
@@ -288,10 +601,11 @@ menu_load (uint_fast8_t romfiles)
 
                 if (do_display)
                 {
-                    if (nfiles < MAXFILES)
+                    if (n_subentries < MAX_SUB_ENTRIES)
                     {
-                        strcpy (files[nfiles], fno.fname);
-                        nfiles++;
+                        strncpy (subentries.files[n_subentries], fno.fname, MENU_MAX_FILENAME_LEN);
+                        subentries.files[n_subentries][MENU_MAX_FILENAME_LEN] = '\0';
+                        n_subentries++;
                     }
                 }
             }
@@ -300,68 +614,181 @@ menu_load (uint_fast8_t romfiles)
         f_closedir (&dir);
     }
 
-    if (nfiles > 1)
+    if (n_subentries > 1)
     {
-        qsort (files, nfiles, MAX_FILENAMESIZE, filescmp);
+        qsort (subentries.files, n_subentries, MENU_MAX_FILENAME_LEN + 1, filescmp);
     }
 
-    draw_menu_load (offsetidx, activeitem);
     menu_wait_until_joystick_released ();
+    entry_idx = menu_handle_sub_menu ((FILE *) NULL);
 
-    while (! do_break && (scancode = menu_get_scancode()) != SCANCODE_ESC)
+    if (entry_idx >= 0)
     {
-        switch (scancode)
-        {
-            case SCANCODE_D_ARROW:
-            {
-                if (activeitem < nfiles - 1)
-                {
-                    activeitem++;
-
-                    if (activeitem - offsetidx > MENU_LOAD_ENTRIES - 1)
-                    {
-                        offsetidx = activeitem - MENU_LOAD_ENTRIES + 1;
-                    }
-
-                    draw_menu_load (offsetidx, activeitem);
-                }
-                break;
-            }
-            case SCANCODE_U_ARROW:
-            {
-                if (activeitem > 0)
-                {
-                    activeitem--;
-
-                    if (activeitem < offsetidx)
-                    {
-                        offsetidx = activeitem;
-                    }
-
-                    draw_menu_load (offsetidx, activeitem);
-                }
-                break;
-            }
-            case SCANCODE_ENTER:
-            case SCANCODE_SPACE:
-            {
-                // printf ("activeitem = %d\r\n", activeitem);
-                fname = files[activeitem];
-                do_break = 1;
-                break;
-            }
-        }
-
-        if (z80_settings.keyboard & KEYBOARD_USB)
-        {
-            usb_hid_host_process (TRUE);
-        }
+        fname = subentries.files[entry_idx];
     }
 
-    tft_fill_rectangle (MENU_START_X, MENU_START_Y, MENU_END_X, MENU_END_Y, BLACK565);                      // erase file menu
+    menu_erase_rectangle ();
     return fname;
 }
 
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_do_poke () - do the poke
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static void
+menu_do_poke (int entry)
+{
+    char            buf[128];
+    char *          fname;
+    int             entry_idx = 0;
+
+    fname = z80_get_poke_file ();
+
+    if (fname && *fname)
+    {
+        FILE * fp = fopen (fname, "r");
+
+        if (fp)
+        {
+            while (fgets (buf, sizeof (buf), fp))
+            {
+                if (*buf == 'Y')
+                {
+                    break;
+                }
+
+                if (*buf == 'N')
+                {
+                    if (entry_idx == entry)
+                    {
+                        for (;;)
+                        {
+                            if (fgets (buf, sizeof (buf), fp))
+                            {
+                                if (buf[0] == 'M' || buf[0] == 'Z')
+                                {
+                                    int     values[4];
+                                    int     cnt = 0;
+                                    char *  p;
+
+                                    for (p = buf + 1; *p; p++)
+                                    {
+                                        if (*p != ' ')
+                                        {
+                                            values[cnt++] = atoi (p);
+
+                                            if (cnt == 4)
+                                            {
+                                                break;
+                                            }
+
+                                            while (*p && *p != ' ')
+                                            {
+                                                p++;
+                                            }
+                                        }
+                                    }
+
+                                    if (cnt == 4)
+                                    {
+                                        if (values[0] == 8)
+                                        {
+                                            zx_ram_set_8 (values[1], values[2]);
+                                            // printf ("addr=%d val=%d\n", values[1], values[2]);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    entry_idx++;
+                }
+            }
+
+            fclose (fp);
+        }
+    }
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_poke () - handle menu for poke entry selection
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+static int
+menu_poke (void)
+{
+    char *          fname;
+    int             entry_idx   = -1;
+    int             ch;
+    uint_fast8_t    bol = 1;                                // flag: at beginning of line
+    long            pos;
+
+    menu_draw_rectangle ();
+
+    n_subentries = 0;
+
+    fname = z80_get_poke_file ();
+
+    if (fname && *fname)
+    {
+        FILE * fp = fopen (fname, "r");
+
+        if (fp)
+        {
+            for (pos = 0; (ch = getc (fp)) != EOF; pos++)   // ftell doesn't work correctly, so we read char by char instead of calling fgets()
+            {
+                if (bol)
+                {
+                    if (bol && ch == 'Y')
+                    {
+                        break;
+                    }
+
+                    if (ch == 'N')
+                    {
+                        if (n_subentries < MAX_SUB_ENTRIES)
+                        {
+                            subentries.positions[n_subentries] = pos + 1;
+                            n_subentries++;
+                        }
+                    }
+                }
+
+                if (ch == '\n')
+                {
+                    bol = 1;
+                }
+                else
+                {
+                    bol = 0;
+                }
+            }
+
+            menu_wait_until_joystick_released ();
+            entry_idx = menu_handle_sub_menu (fp);
+            fclose (fp);
+        }
+    }
+
+    menu_erase_rectangle ();
+    return entry_idx;
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * draw_input_fname_field () - draw input fname field
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
 static void
 draw_input_fname_field (uint_fast16_t x, uint_fast16_t y, char * fname_buf)
 {
@@ -372,8 +799,6 @@ draw_input_fname_field (uint_fast16_t x, uint_fast16_t y, char * fname_buf)
     draw_string ((unsigned char *) " ", y, x, WHITE565, BLACK565);
 }
 
-#define MAX_FNAME_INPUT_LEN         8
-
 /*-------------------------------------------------------------------------------------------------------------------------------------------
  * menu_save () - handle save to file menu
  *-------------------------------------------------------------------------------------------------------------------------------------------
@@ -381,28 +806,33 @@ draw_input_fname_field (uint_fast16_t x, uint_fast16_t y, char * fname_buf)
 static char *
 menu_save (uint8_t is_snapshot)
 {
-    static char     fname_buf[16];                                                                          // static, is return value!
+    static char     fname_buf[MAX_FNAME_INPUT_LEN + 1];                                     // static, is return value!
     uint_fast8_t    do_break    = 0;
     uint_fast16_t   scancode;
     uint_fast8_t    len;
     uint_fast8_t    ch;
+    const char *    p;
     char *          fname       = (char *) 0;
+    int             xoffset;
 
-    tft_fill_rectangle (MENU_START_X, MENU_START_Y, MENU_END_X, MENU_END_Y, BLACK565);                      // erase menu
+    menu_draw_rectangle ();
 
     if (is_snapshot)
     {
-        draw_string ((unsigned char *) "Snapshot:", MENU_START_Y + MENU_START_Y_OFFSET, MENU_START_X, WHITE565, BLACK565);
+        p = "Snapshot:";
     }
     else
     {
-        draw_string ((unsigned char *) "Save to file:", MENU_START_Y + MENU_START_Y_OFFSET, MENU_START_X, WHITE565, BLACK565);
+        p = "Save to file:";
     }
+
+    draw_string ((unsigned char *) p, SUB_MENU_START_Y + MENU_START_Y_OFFSET, SUB_MENU_START_X + SUB_MENU_X_OFFSET, WHITE565, BLACK565);
+    xoffset = SUB_MENU_START_X + SUB_MENU_X_OFFSET + 8 * (strlen (p) + 1);
 
     fname_buf[0] = '\0';
     len = 0;
 
-    draw_input_fname_field (MENU_START_X, MENU_START_Y + MENU_START_Y_OFFSET + MENU_SAVE_STEP_Y, fname_buf);
+    draw_input_fname_field (xoffset, SUB_MENU_START_Y + MENU_START_Y_OFFSET, fname_buf);
     menu_wait_until_joystick_released ();
 
     while (! do_break && (scancode = menu_get_scancode()) != SCANCODE_ESC)
@@ -454,7 +884,7 @@ menu_save (uint8_t is_snapshot)
                 {
                     len--;
                     fname_buf[len] = '\0';
-                    draw_input_fname_field (MENU_START_X, MENU_START_Y + MENU_START_Y_OFFSET + MENU_SAVE_STEP_Y, fname_buf);
+                    draw_input_fname_field (xoffset, SUB_MENU_START_Y + MENU_START_Y_OFFSET, fname_buf);
                 }
                 break;
             }
@@ -480,12 +910,12 @@ menu_save (uint8_t is_snapshot)
 
         if (ch)
         {
-            if (len < MAX_FNAME_INPUT_LEN - 1)
+            if (len < MAX_FNAME_INPUT_LEN)
             {
                 fname_buf[len] = ch;
                 len++;
                 fname_buf[len] = '\0';
-                draw_input_fname_field (MENU_START_X, MENU_START_Y + MENU_START_Y_OFFSET + MENU_SAVE_STEP_Y, fname_buf);
+                draw_input_fname_field (xoffset, SUB_MENU_START_Y + MENU_START_Y_OFFSET, fname_buf);
             }
         }
 
@@ -495,33 +925,46 @@ menu_save (uint8_t is_snapshot)
         }
     }
 
-    tft_fill_rectangle (MENU_START_X, MENU_START_Y, MENU_END_X, MENU_END_Y, BLACK565);                      // erase file menu
+    menu_erase_rectangle ();
     return fname;
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
- * draw_menu () - draw setup menu
+ * draw_main_menu () - draw main menu
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-draw_menu (uint_fast8_t activeidx, uint_fast8_t menu_stop_active)
+draw_main_menu (uint_fast8_t activeidx, uint_fast8_t poke_file_active)
 {
-    draw_menu_entry (MENU_ENTRY_JOYSTICK, joystick_names[joystick_type], activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
-    draw_menu_entry (MENU_ENTRY_RESET, "RESET", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
-    draw_menu_entry (MENU_ENTRY_ROM, "ROM", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
-    draw_menu_entry (MENU_ENTRY_LOAD, "LOAD", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+#if TFT_WIDTH == 320
+    tft_fill_rectangle (MAIN_MENU_START_X - 8, MAIN_MENU_START_Y - 8, MAIN_MENU_END_X + 8, MAIN_MENU_END_Y + 8, BLACK565);  // erase menu block
+    tft_draw_rectangle (MAIN_MENU_START_X - 8, MAIN_MENU_START_Y - 8, MAIN_MENU_END_X + 8, MAIN_MENU_END_Y + 8, RED565);    // draw thin red border
+#endif
 
-    if (menu_stop_active)
+    draw_main_menu_entry (MENU_ENTRY_JOYSTICK, joystick_names[joystick_type], activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+    draw_main_menu_entry (MENU_ENTRY_RESET, "Reset CPU", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+    draw_main_menu_entry (MENU_ENTRY_ROM, "Load ROM", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+
+    if (poke_file_active)
     {
-        draw_menu_entry (MENU_ENTRY_SAVE, "Stop Record", activeidx, ENTRY_TYPE_ALERT, MENU_STEP_Y);
+        draw_main_menu_entry (MENU_ENTRY_POKE, "Poke", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
     }
     else
     {
-        draw_menu_entry (MENU_ENTRY_SAVE, "SAVE", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+        draw_main_menu_entry (MENU_ENTRY_POKE, "Poke", activeidx, ENTRY_TYPE_DISABLED, MENU_STEP_Y);
     }
 
-    draw_menu_entry (MENU_ENTRY_SNAPSHOT, "SNAPSHOT", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
-    draw_menu_entry (MENU_ENTRY_AUTOSTART, autostart_entries[z80_get_autostart()], activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+    if (menu_stop_active)
+    {
+        draw_main_menu_entry (MENU_ENTRY_SAVE, "Stop Record", activeidx, ENTRY_TYPE_ALERT, MENU_STEP_Y);
+    }
+    else
+    {
+        draw_main_menu_entry (MENU_ENTRY_SAVE, "SAVE", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+    }
+
+    draw_main_menu_entry (MENU_ENTRY_SNAPSHOT, "SNAPSHOT", activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
+    draw_main_menu_entry (MENU_ENTRY_AUTOSTART, autostart_entries[z80_get_autostart()], activeidx, ENTRY_TYPE_NONE, MENU_STEP_Y);
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
@@ -529,19 +972,13 @@ draw_menu (uint_fast8_t activeidx, uint_fast8_t menu_stop_active)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 void
-menu (void)
+menu (uint_fast8_t poke_file_active)
 {
-    static uint_fast8_t     menu_stop_active = 0;
     uint_fast8_t            activeitem = 0;
     uint_fast16_t           scancode;
     uint_fast8_t            do_break = 0;
 
-#if TFT_WIDTH == 320
-    tft_fill_rectangle (MENU_START_X - 8, MENU_START_Y - 8, MENU_END_X + 8, MENU_END_Y + 8, BLACK565);              // erase menu block
-    tft_draw_rectangle (MENU_START_X - 8, MENU_START_Y - 8, MENU_END_X + 8, MENU_END_Y + 8, RED565);                // draw thin red border
-#endif
-
-    draw_menu (activeitem, menu_stop_active);
+    draw_main_menu (activeitem, poke_file_active);
     menu_wait_until_joystick_released ();
 
     while (! do_break && (scancode = menu_get_scancode()) != SCANCODE_ESC)
@@ -553,7 +990,20 @@ menu (void)
                 if (activeitem < N_MENUS - 1)
                 {
                     activeitem++;
-                    draw_menu (activeitem, menu_stop_active);
+
+                    if (activeitem == MENU_ENTRY_POKE && ! poke_file_active)
+                    {
+                        if (activeitem + 1 < N_MENUS - 1)
+                        {
+                            activeitem++;
+                        }
+                        else
+                        {
+                            activeitem--;
+                        }
+                    }
+
+                    draw_main_menu (activeitem, poke_file_active);
                 }
                 break;
             }
@@ -562,7 +1012,20 @@ menu (void)
                 if (activeitem > 0)
                 {
                     activeitem--;
-                    draw_menu (activeitem, menu_stop_active);
+
+                    if (activeitem == MENU_ENTRY_POKE && ! poke_file_active)
+                    {
+                        if (activeitem - 1 > 0)
+                        {
+                            activeitem--;
+                        }
+                        else
+                        {
+                            activeitem++;
+                        }
+                    }
+
+                    draw_main_menu (activeitem, poke_file_active);
                 }
                 break;
             }
@@ -581,7 +1044,8 @@ menu (void)
                         {
                             joystick_type = 0;
                         }
-                        draw_menu (activeitem, menu_stop_active);
+
+                        draw_main_menu (activeitem, poke_file_active);
                         break;
                     }
                     case MENU_ENTRY_AUTOSTART:
@@ -594,7 +1058,8 @@ menu (void)
                         {
                             z80_set_autostart (1);
                         }
-                        draw_menu (activeitem, menu_stop_active);
+
+                        draw_main_menu (activeitem, poke_file_active);
                         break;
                     }
                     case MENU_ENTRY_RESET:
@@ -615,26 +1080,27 @@ menu (void)
                         }
                         else
                         {
-                            draw_menu (activeitem, menu_stop_active);
+                            draw_main_menu (activeitem, poke_file_active);
                         }
                         break;
                     }
-                    case MENU_ENTRY_LOAD:
-                    {
-                        char * fname = menu_load (0);
 
-                        if (fname)
+                    case MENU_ENTRY_POKE:
+                    {
+                        int entry = menu_poke ();
+
+                        if (entry >= 0)
                         {
-                            // printf ("z80_set_fname_load (%s)\r\n", fname);
-                            z80_set_fname_load (fname);
+                            menu_do_poke (entry);
                             do_break = 1;
                         }
                         else
                         {
-                            draw_menu (activeitem, menu_stop_active);
+                            draw_main_menu (activeitem, poke_file_active);
                         }
                         break;
                     }
+
                     case MENU_ENTRY_SAVE:
                     {
                         if (menu_stop_active)
@@ -656,7 +1122,7 @@ menu (void)
                             }
                             else
                             {
-                                draw_menu (activeitem, menu_stop_active);
+                                draw_main_menu (activeitem, poke_file_active);
                             }
                         }
                         break;
@@ -673,7 +1139,7 @@ menu (void)
                         }
                         else
                         {
-                            draw_menu (activeitem, menu_stop_active);
+                            draw_main_menu (activeitem, poke_file_active);
                         }
                         break;
                     }
@@ -688,9 +1154,37 @@ menu (void)
         }
     }
 
-    draw_menu (0xFF, menu_stop_active);
+    draw_main_menu (0xFF, poke_file_active);
     ps2key_setmode (PS2KEY_CALLBACK_MODE);
     menu_wait_until_joystick_released ();
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_redraw () - redraw menu
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+void
+menu_redraw (uint_fast8_t poke_file_active)
+{
+    draw_main_menu (0xFF, poke_file_active);
+}
+
+/*-------------------------------------------------------------------------------------------------------------------------------------------
+ * menu_start_load () - directly enter menu "LOAD"
+ *-------------------------------------------------------------------------------------------------------------------------------------------
+ */
+char *
+menu_start_load (void)
+{
+    char *  fname;
+
+    ps2key_setmode (PS2KEY_GET_MODE);
+    z80_leave_focus ();
+    fname = menu_load (0);
+    z80_enter_focus ();
+    ps2key_setmode (PS2KEY_CALLBACK_MODE);
+
+    return fname;
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------------
@@ -702,6 +1196,6 @@ menu_init (void)
 {
     set_font (FONT_08x12);
 #if TFT_WIDTH == 800                                                        // draw menu only if there is enough space on the right side
-    draw_menu (0xFF, 0);
+    draw_main_menu (0xFF, 0);
 #endif
 }

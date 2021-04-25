@@ -108,9 +108,9 @@
 */
 // possible flags for keyboard:
 #if defined STM32F4XX
-#define MAX_FILENAME_LEN        64
+#define Z80_MAX_FILENAME_LEN    15
 #else
-#define MAX_FILENAME_LEN        128
+#define Z80_MAX_FILENAME_LEN    255
 #endif
 
 // possible flags for keyboard:
@@ -122,15 +122,16 @@
 typedef struct
 {
 #ifndef STM32F4XX
-    char                        path[MAX_FILENAME_LEN];                         // search path for files
+    char                        path[Z80_MAX_FILENAME_LEN + 1];                 // search path for files
 #endif
-    char                        romfile[MAX_FILENAME_LEN];                      // ROM file to load
+    char                        romfile[Z80_MAX_FILENAME_LEN + 1];              // ROM file to load
     uint8_t                     autostart;                                      // flag: autostart BASIC programs
-    char                        autoload[MAX_FILENAME_LEN];                     // TAPE file to autoload
+    char                        autoload[Z80_MAX_FILENAME_LEN + 1];             // TAPE file to autoload
     uint_fast8_t                keyboard;                                       // keyboard type, can be combined
     uint8_t                     rgb_order;                                      // rgb_order
     uint8_t                     orientation;                                    // orientation
-    uint_fast8_t                turbo_mode;                                     // turbo mode
+    uint_fast8_t                turbo_mode;                                     // flag: turbo mode
+    uint_fast8_t                rom_hooks;                                      // flag: ROM hooks active
 } Z80_SETTINGS;
 
 extern Z80_SETTINGS             z80_settings;
@@ -170,6 +171,8 @@ extern void             zx_spectrum (void);
 extern void             z80 (void);
 #endif
 
+extern uint_fast8_t     z80_user_cancelled_load;
+
 /*------------------------------------------------------------------------------------------------------------------------
  * Public functions
  *------------------------------------------------------------------------------------------------------------------------
@@ -177,9 +180,15 @@ extern void             z80 (void);
 extern void             z80_reset (void);
 extern void             z80_pause (void);
 extern void             z80_leave_focus (void);
+extern void             z80_enter_focus (void);
 extern void             z80_next_display_orientation (void);
 extern void             z80_next_display_rgb_order (void);
 extern void             z80_next_turbo_mode (void);
+extern void             z80_set_turbo_mode (uint_fast8_t active);
+extern uint_fast8_t     z80_get_turbo_mode (void);
+extern void             z80_set_rom_hooks (uint_fast8_t active);
+extern uint_fast8_t     z80_get_rom_hooks (void);
+extern char *           z80_get_poke_file (void);
 extern void             z80_load_rom (const char * fname);
 extern void             z80_set_fname_load (const char * fname);
 extern void             z80_close_fname_load (void);

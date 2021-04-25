@@ -22,7 +22,7 @@
 					<Add option="-g3" />
 					<Add option="-DARM_MATH_CM4" />
 					<Add option="-D__FPU_USED" />
-					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F407" />
 					<Add option="-DSTM32F4XX" />
 					<Add option="-DUSE_STDPERIPH_DRIVER" />
 					<Add option="-DHSE_VALUE=8000000" />
@@ -51,8 +51,29 @@
 				<Option compiler="armgcc_eb" />
 				<Option projectDeviceOptionsRelation="0" />
 				<Compiler>
+					<Add option="-Wunreachable-code" />
+					<Add option="-Wundef" />
+					<Add option="-Wstrict-prototypes" />
+					<Add option="-Wshadow" />
 					<Add option="-Werror" />
 					<Add option="-W" />
+					<Add option="-Wunused-value" />
+					<Add option="-Wunused-variable" />
+					<Add option="-Wunused-parameter" />
+					<Add option="-Wunused-function" />
+					<Add option="-Wunused" />
+					<Add option="-Wswitch" />
+					<Add option="-Wreturn-type" />
+					<Add option="-Wparentheses" />
+					<Add option="-Wmultichar" />
+					<Add option="-Wimplicit-int" />
+					<Add option="-Wimplicit-function-declaration" />
+					<Add option="-Wformat" />
+					<Add option="-Werror-implicit-function-declaration" />
+					<Add option="-Wdiv-by-zero" />
+					<Add option="-Wcomment" />
+					<Add option="-Wchar-subscripts" />
+					<Add option="-pedantic-errors" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
@@ -62,7 +83,7 @@
 					<Add option="-g2" />
 					<Add option="-DARM_MATH_CM4" />
 					<Add option="-D__FPU_USED" />
-					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F407" />
 					<Add option="-DSTM32F4XX" />
 					<Add option="-DUSE_STDPERIPH_DRIVER" />
 					<Add option="-DHSE_VALUE=8000000" />
@@ -70,6 +91,26 @@
 					<Add option="-DILI9341" />
 				</Compiler>
 				<Cpp>
+					<Add option="-Wwrite-strings" />
+					<Add option="-Wunreachable-code" />
+					<Add option="-Wtraditional" />
+					<Add option="-Wstrict-prototypes" />
+					<Add option="-Wmissing-format-attribute" />
+					<Add option="-Werror" />
+					<Add option="-Wunused-value" />
+					<Add option="-Wunused-variable" />
+					<Add option="-Wunused-parameter" />
+					<Add option="-Wunused-function" />
+					<Add option="-Wunused" />
+					<Add option="-Wuninitialized" />
+					<Add option="-Wparentheses" />
+					<Add option="-Wmultichar" />
+					<Add option="-Wmissing-braces" />
+					<Add option="-Wformat" />
+					<Add option="-Wcomment" />
+					<Add option="-pedantic-errors" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
 					<Add option="-fdata-sections" />
 					<Add option="-ffunction-sections" />
 					<Add option="-O2" />
@@ -98,7 +139,7 @@
 					<Add option="-g3" />
 					<Add option="-DARM_MATH_CM4" />
 					<Add option="-D__FPU_USED" />
-					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F407" />
 					<Add option="-DSTM32F4XX" />
 					<Add option="-DUSE_STDPERIPH_DRIVER" />
 					<Add option="-DHSE_VALUE=8000000" />
@@ -127,9 +168,12 @@
 				<Option compiler="armgcc_eb" />
 				<Option projectDeviceOptionsRelation="0" />
 				<Compiler>
+					<Add option="-Wunreachable-code" />
+					<Add option="-Wundef" />
+					<Add option="-Wstrict-prototypes" />
+					<Add option="-Wshadow" />
 					<Add option="-Werror" />
 					<Add option="-W" />
-					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
 					<Add option="-fdata-sections" />
@@ -138,7 +182,7 @@
 					<Add option="-g2" />
 					<Add option="-DARM_MATH_CM4" />
 					<Add option="-D__FPU_USED" />
-					<Add option="-DSTM32F407VE" />
+					<Add option="-DSTM32F407" />
 					<Add option="-DSTM32F4XX" />
 					<Add option="-DUSE_STDPERIPH_DRIVER" />
 					<Add option="-DHSE_VALUE=8000000" />
@@ -527,7 +571,7 @@
 						</family_options>
 					</debug_interface>
 				</target_debugging_settings>
-				<target_debugging_settings target="ILI9341-Debug" active_interface="ST-link">
+				<target_debugging_settings target="SSD1963-Debug" active_interface="ST-link">
 					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBITZ}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics" gdb_before_conn="" gdb_after_conn="">
 						<family_options family_id="STMicroelectronics">
 							<option opt_id="ID_JTAG_SWD" opt_value="swd" />
@@ -561,7 +605,7 @@
 						</family_options>
 					</debug_interface>
 				</target_debugging_settings>
-				<target_debugging_settings target="SSD1963-Debug" active_interface="ST-link">
+				<target_debugging_settings target="ILI9341-Debug" active_interface="ST-link">
 					<debug_interface interface_id="ST-link" ip_address="localhost" ip_port="4242" path="${EMBITZ}\share\contrib" executable="STLinkGDB.exe" description="" dont_start_server="false" backoff_time="1000" options="0" reg_filter="0" active_family="STMicroelectronics" gdb_before_conn="" gdb_after_conn="">
 						<family_options family_id="STMicroelectronics">
 							<option opt_id="ID_JTAG_SWD" opt_value="swd" />

@@ -24,6 +24,7 @@
  * SOFTWARE.
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
+#include <stdio.h>
 #include <string.h>
 #include "stm32f4xx_gpio.h"
 #include "zxkbd.h"
@@ -34,6 +35,7 @@
 #include "z80.h"
 #include "zxkbd.h"
 #include "ps2key.h"
+#include "usb_hid_host.h"
 #include "delay.h"
 
 /*------------------------------------------------------------------------------------------------------------------------
@@ -134,20 +136,11 @@ zxkbd_init (void)
   GPIO_SET_BIT(GPIOC, GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7);
 
   /* Configure GPIO pins : PE0 PE1 PE2 PE3 PE4 PE5 */
-  gpio.GPIO_Pin      = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5;
-  gpio.GPIO_Mode     = GPIO_Mode_IN;
-  gpio.GPIO_Speed    = GPIO_Speed_2MHz;
-  gpio.GPIO_PuPd     = GPIO_PuPd_UP;
-
+  GPIO_SET_MODE_IN_UP(gpio, GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5, GPIO_Speed_2MHz);
   GPIO_Init (GPIOE, &gpio);
 
   /* Configure GPIO pins : PC0 PC1 PC2 PC3 PC4 PC5 PC6 PC7 */
-  gpio.GPIO_Pin      = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7;
-  gpio.GPIO_Mode     = GPIO_Mode_OUT;
-  gpio.GPIO_OType    = GPIO_OType_OD;
-  gpio.GPIO_PuPd     = GPIO_PuPd_NOPULL;
-  gpio.GPIO_Speed    = GPIO_Speed_2MHz;
-
+  GPIO_SET_MODE_OUT_OD(gpio, GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6|GPIO_Pin_7, GPIO_Speed_2MHz);
   GPIO_Init (GPIOC, &gpio);
 }
 
@@ -277,10 +270,11 @@ zxkey_pressed (uint_fast8_t row, uint_fast8_t colmask)
 void
 zxkbd_emulate_ps2keys (void)
 {
-    uint_fast16_t   ps2key_scancode = 0;
+    uint_fast16_t   scancode = 0;
     uint_fast8_t    row;
     uint_fast8_t    col;
     uint8_t         addr;
+    uint_fast8_t    cnt;
 
     for (row = 0; row < ZX_KBD_ROWS; row++)
     {
@@ -288,45 +282,54 @@ zxkbd_emulate_ps2keys (void)
         zxkbd_set_row (addr);                                                                   // set address row
         delay_usec (15);                                                                        // wait until signal is stable
         zxkbd_inv_matrix[row] = (~zxkbd_get_col ()) & ZX_KBD_COLMASK;                           // inverse: 1 = pressed, 0 = released
-        delay_msec (4);                                                                         // debounce: 8 x 4 msec = 32 msec
+
+        for (cnt = 0; cnt < 4; cnt++)                                                           // debounce: 8 x 4 msec = 32 msec
+        {
+            delay_msec (1);
+
+            if (z80_settings.keyboard & KEYBOARD_USB)                                           // call USB statemachine during wait
+            {
+                usb_hid_host_process (TRUE);
+            }
+        }
     }
 
     if (zxkey_pressed (ROW_SHIFT, MASK_SHIFT))                                                  // Caps Shift pressed
     {
         if (zxkey_changed (ROW_D_ARROW, MASK_D_ARROW))                                          // Caps Shift + 6 = Down Arrow
         {
-            ps2key_scancode = SCANCODE_D_ARROW;
+            scancode = SCANCODE_D_ARROW;
 
             if (! zxkey_pressed (ROW_D_ARROW, MASK_D_ARROW))
             {
-                ps2key_scancode |= PS2KEY_RELEASED_FLAG;
+                scancode |= PS2KEY_RELEASED_FLAG;
             }
         }
         else if (zxkey_changed (ROW_U_ARROW, MASK_U_ARROW))                                     // Caps Shift + 7 = Up Arrow
         {
-            ps2key_scancode = SCANCODE_U_ARROW;
+            scancode = SCANCODE_U_ARROW;
 
             if (! zxkey_pressed (ROW_U_ARROW, MASK_U_ARROW))
             {
-                ps2key_scancode |= PS2KEY_RELEASED_FLAG;
+                scancode |= PS2KEY_RELEASED_FLAG;
             }
         }
         else if (zxkey_changed (ROW_BSP, MASK_BSP))                                             // Caps Shift + 0 = Backspace
         {
-            ps2key_scancode = SCANCODE_BSP;
+            scancode = SCANCODE_BSP;
 
             if (! zxkey_pressed (ROW_BSP, MASK_BSP))
             {
-                ps2key_scancode |= PS2KEY_RELEASED_FLAG;
+                scancode |= PS2KEY_RELEASED_FLAG;
             }
         }
         else if (zxkey_changed (ROW_ESC, MASK_ESC))                                             // Caps Shift + Space = Break (ESC)
         {
-            ps2key_scancode = SCANCODE_ESC;
+            scancode = SCANCODE_ESC;
 
             if (! zxkey_pressed (ROW_ESC, MASK_ESC))
             {
-                ps2key_scancode |= PS2KEY_RELEASED_FLAG;
+                scancode |= PS2KEY_RELEASED_FLAG;
             }
         }
     }
@@ -334,11 +337,11 @@ zxkbd_emulate_ps2keys (void)
     {
         if (zxkey_changed (ROW_MINUS, MASK_MINUS))                                              // Symbol Shift + J = Minus
         {
-            ps2key_scancode = SCANCODE_MINUS;
+            scancode = SCANCODE_MINUS;
 
             if (! zxkey_pressed (ROW_MINUS, MASK_MINUS))
             {
-                ps2key_scancode |= PS2KEY_RELEASED_FLAG;
+                scancode |= PS2KEY_RELEASED_FLAG;
             }
         }
     }
@@ -352,13 +355,13 @@ zxkbd_emulate_ps2keys (void)
                 {
                     if (zxkey_changed (row, (1 << col)))
                     {
-                        ps2key_scancode = scancodes[row][col];
+                        scancode = scancodes[row][col];
 
-                        if (ps2key_scancode)
+                        if (scancode)
                         {
                             if (! zxkey_pressed (row, (1 << col)))
                             {
-                                ps2key_scancode |= PS2KEY_RELEASED_FLAG;
+                                scancode |= PS2KEY_RELEASED_FLAG;
                             }
                         }
                         break;
@@ -368,9 +371,10 @@ zxkbd_emulate_ps2keys (void)
         }
     }
 
-    if (ps2key_scancode)
+    if (scancode)
     {
-        ps2key_setscancode (ps2key_scancode);
+        // printf ("zx scancode: %04x\n", scancode);
+        ps2key_setscancode (scancode);
     }
 
     memcpy (last_zxkbd_inv_matrix, zxkbd_inv_matrix, sizeof (zxkbd_inv_matrix));

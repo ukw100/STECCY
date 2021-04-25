@@ -3,7 +3,7 @@
  *-------------------------------------------------------------------------------------------------------------------------------------------
  * MIT License
  *
- * Copyright (c) 2020 Frank Meyer - frank(at)fli4l.de
+ * Copyright (c) 2020-2021 Frank Meyer - frank(at)fli4l.de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -176,5 +176,8 @@
 #define SCANCODE_END            (0x4F | SCANCODE_EXTENDED_FLAG)
 #define SCANCODE_PAGE_UP        (0x49 | SCANCODE_EXTENDED_FLAG)
 #define SCANCODE_PAGE_DOWN      (0x51 | SCANCODE_EXTENDED_FLAG)
+
+#define SCANCODE_PG_UP          SCANCODE_PAGE_UP
+#define SCANCODE_PG_DN          SCANCODE_PAGE_DOWN
 
 #endif // SCANCODES_H

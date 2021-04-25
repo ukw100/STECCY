@@ -336,7 +336,7 @@ joystick_to_scancode (void)
  *-------------------------------------------------------------------------------------------------------------------------------------------
  */
 static void
-joystick_decode_data ()
+joystick_decode_data (void)
 {
     static uint_fast8_t     last_buttons = 0;
     uint_fast8_t            buttons;
