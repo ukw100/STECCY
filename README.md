@@ -799,7 +799,7 @@ Log in as a normal user, e.g. as user "pi". Enter the following commands in the 
  mkdir src
  cd src
  wget https://github.com/ukw100/STECCY/archive/refs/heads/main.zip -O steccy.zip
- unip steccy.zip
+ unzip steccy.zip
  cd steccy/steccy-lx
  cp steccy.ini $HOME/.steccy.ini
 ```
