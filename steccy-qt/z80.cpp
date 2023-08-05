@@ -175,6 +175,7 @@ static int                          hooks_active = 0;
 
 #if defined QT_CORE_LIB
 #include "mywindow.h"
+QElapsedTimer elapsed_timer;
 #define SLEEP_MSEC                  10                                      // QT on PC
 #elif defined FRAMEBUFFER || defined X11
 #define SLEEP_USEC                  10000                                   // Linux
@@ -7218,8 +7219,7 @@ z80_idle_time ()
     {
         static int      cnt = 0;
         static int      last_elapsed = 0;
-        static QTime    qtime;
-        int             elapsed = qtime.elapsed();
+        int             elapsed = elapsed_timer.elapsed();
 
         clockcycles -= CLOCKCYCLES_PER_10_MSEC;
 
@@ -7300,7 +7300,7 @@ z80_idle_time ()
             zxkbd_poll ();
         }
 
-        if (z80_settings.keyboard & KEYBOARD_USB)                       // use ídle time to call USB statemachine
+        if (z80_settings.keyboard & KEYBOARD_USB)                       // use Ã­dle time to call USB statemachine
         {
             usb_hid_host_process (FALSE);
         }
@@ -7982,6 +7982,8 @@ zx_spectrum (int argc, char **argv)
     zxscr_init_display ();
     z80Thread thread;
     thread.start ();
+
+    elapsed_timer.start();
 
     rtc = app.exec ();
     thread.quit ();
